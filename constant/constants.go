@@ -1,5 +1,12 @@
 package constant
 
+const (
+	LongitudeMin float64 = 117.7737
+	LongitudeMax float64 = 119
+	LatitudeMin  float64 = 24.1
+	LatitudeMax  float64 = 25
+)
+
 type ShipMeta struct {
 	MMSI 	int
 }
@@ -74,4 +81,29 @@ type GetInfoWithShipIDResponse struct {
 	Code    int        `json:"code"`
 	Message string     `json:"message"`
 	Data    []InfoMeta `json:"data"`
+}
+
+type Data struct {
+	Year 	int
+	Month 	int
+	Day 	int
+	Hour 	int
+	Minute 	int
+	Second 	int
+}
+
+type CulTrafficeRequest struct {
+	StartTime 	*Data
+	EndTime 	*Data
+	LotDivide 	int
+	LatDivide 	int
+}
+
+type CulTrafficeResponse struct {
+	Traffic 	map[string]int
+}
+
+type AreaTraffic struct {
+	ShipMap 	map[int]int
+	Traffic 	int
 }
