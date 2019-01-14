@@ -9,19 +9,39 @@ import (
 
 func main() {
 	mysql.InitMysql()
+	//response, err := handler.CulTraffice(
+	//	&constant.CulTrafficRequest{
+	//		StartTime: 	&constant.Data{
+	//			Year: 	2018,
+	//			Month: 	12,
+	//			Day: 	25,
+	//			Hour: 	0,
+	//			Minute: 0,
+	//		},
+	//		EndTime: 	&constant.Data{
+	//			Year: 	2018,
+	//			Month: 	12,
+	//			Day: 	25,
+	//			Hour: 	23,
+	//			Minute: 59,
+	//		},
+	//		LotDivide: 	10,
+	//		LatDivide: 	10,
+	//	},
+	//)
 	response, err := handler.CulTraffice(
-		&constant.CulTrafficeRequest{
+		&constant.CulTrafficRequest{
 			StartTime: 	&constant.Data{
 				Year: 	2018,
 				Month: 	12,
-				Day: 	25,
+				Day: 	22,
 				Hour: 	0,
 				Minute: 0,
 			},
 			EndTime: 	&constant.Data{
-				Year: 	2018,
-				Month: 	12,
-				Day: 	25,
+				Year: 	2019,
+				Month: 	1,
+				Day: 	2,
 				Hour: 	23,
 				Minute: 59,
 			},

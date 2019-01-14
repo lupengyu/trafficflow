@@ -2,9 +2,9 @@ package constant
 
 const (
 	LongitudeMin float64 = 117.7737
-	LongitudeMax float64 = 119
-	LatitudeMin  float64 = 24.1
-	LatitudeMax  float64 = 25
+	LongitudeMax float64 = 118.63037
+	LatitudeMin  float64 = 24.08784
+	LatitudeMax  float64 = 24.691
 )
 
 type ShipMeta struct {
@@ -92,18 +92,24 @@ type Data struct {
 	Second 	int
 }
 
-type CulTrafficeRequest struct {
+type CulTrafficRequest struct {
 	StartTime 	*Data
 	EndTime 	*Data
 	LotDivide 	int
 	LatDivide 	int
 }
 
-type CulTrafficeResponse struct {
+type CulTrafficResponse struct {
 	Traffic 	map[string]int
 }
 
 type AreaTraffic struct {
 	ShipMap 	map[int]int
 	Traffic 	int
+	HourShipMap []map[int]int
+	HourTraffic []int
+}
+
+type TrafficeData struct {
+	HourTrafficSum 	[]int
 }
