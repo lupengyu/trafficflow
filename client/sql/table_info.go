@@ -8,7 +8,7 @@ import (
 
 func GetInfoWithShipID(shipID string) ([]constant.InfoMeta, error) {
 	rows, err := mysql.DB.Query("SELECT * from info where MMSI = ?", shipID)
-	if err != nil{
+	if err != nil {
 		return nil, errors.New("查询出错了: SELECT * from info where MMSI = " + shipID)
 	}
 	infos := make([]constant.InfoMeta, 0)

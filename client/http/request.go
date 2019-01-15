@@ -18,16 +18,16 @@ type RequestInfo struct {
 type RequestName string
 
 const (
-	GetShip					RequestName = "GetShip"
-	GetPositionWithShipID  	RequestName = "GetPositionWithShipID"
-	GetInfoWithShipID		RequestName = "GetInfoWithShipID"
+	GetShip               RequestName = "GetShip"
+	GetPositionWithShipID RequestName = "GetPositionWithShipID"
+	GetInfoWithShipID     RequestName = "GetInfoWithShipID"
 )
 
 var (
 	MRequestInfo = map[RequestName]RequestInfo{
-		GetShip:    	  		{"/api/get/ship/", "GET", "application/octet-stream"},
-		GetPositionWithShipID:	{"/api/get/position/", "GET", "application/octet-stream"},
-		GetInfoWithShipID:	  	{"/api/get/info/", "GET", "application/octet-stream"},
+		GetShip:               {"/api/get/ship/", "GET", "application/octet-stream"},
+		GetPositionWithShipID: {"/api/get/position/", "GET", "application/octet-stream"},
+		GetInfoWithShipID:     {"/api/get/info/", "GET", "application/octet-stream"},
 	}
 )
 

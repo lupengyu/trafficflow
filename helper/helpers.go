@@ -34,12 +34,12 @@ func DataEqual(data1 *constant.Data, data2 *constant.Data) bool {
 	if data1 == nil || data2 == nil {
 		return false
 	}
-	if  data1.Year == data2.Year &&
+	if data1.Year == data2.Year &&
 		data1.Month == data2.Month &&
 		data1.Day == data2.Day &&
 		data1.Hour == data2.Hour &&
 		data1.Minute == data2.Minute &&
-		data1.Second == data2.Second{
+		data1.Second == data2.Second {
 		return true
 	}
 	return false
@@ -49,7 +49,7 @@ func DayEqual(data1 *constant.Data, data2 *constant.Data) bool {
 	if data1 == nil || data2 == nil {
 		return false
 	}
-	if  data1.Year == data2.Year &&
+	if data1.Year == data2.Year &&
 		data1.Month == data2.Month &&
 		data1.Day == data2.Day {
 		return true

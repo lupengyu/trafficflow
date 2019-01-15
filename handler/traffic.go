@@ -8,8 +8,9 @@ import (
 )
 
 func CulTraffice(request *constant.CulTrafficRequest) (response *constant.CulTrafficResponse, err error) {
+	// 查询时间段内的数据
 	rows, err := mysql.DB.Query(
-	"select * from position where (year > ? or year = ? and (month > ? or month = ? and (day > ? or day = ? and (hour > ? or hour = ? and (minute > ? or minute = ? and second >= ?))))) and (year < ? or year = ? and (month < ? or month = ? and (day < ? or day = ? and (hour < ? or hour = ? and (minute < ? or minute = ? and second <= ?)))))",
+		"select * from position where (year > ? or year = ? and (month > ? or month = ? and (day > ? or day = ? and (hour > ? or hour = ? and (minute > ? or minute = ? and second >= ?))))) and (year < ? or year = ? and (month < ? or month = ? and (day < ? or day = ? and (hour < ? or hour = ? and (minute < ? or minute = ? and second <= ?)))))",
 		request.StartTime.Year, request.StartTime.Year,
 		request.StartTime.Month, request.StartTime.Month,
 		request.StartTime.Day, request.StartTime.Day,
@@ -26,13 +27,15 @@ func CulTraffice(request *constant.CulTrafficRequest) (response *constant.CulTra
 	if err != nil {
 		return nil, err
 	}
-	preTime := &constant.Data {
-		Year: 	0,
-		Month: 	0,
-		Day: 	0,
+
+	// 初始化初始数据
+	preTime := &constant.Data{
+		Year:  0,
+		Month: 0,
+		Day:   0,
 	}
-	trafficData := &constant.TrafficeData {
-		HourTrafficSum: 	make([]int, 24),
+	trafficData := &constant.TrafficeData{
+		HourTrafficSum: make([]int, 24),
 	}
 	var areaTraffic [][]constant.AreaTraffic
 	for i := 0; i < request.LotDivide; i += 1 {
@@ -47,6 +50,8 @@ func CulTraffice(request *constant.CulTrafficRequest) (response *constant.CulTra
 			areaTraffic[i][j].HourTraffic = make([]int, 24)
 		}
 	}
+
+	// 数据循环遍历计算
 	for rows.Next() {
 		// 数据绑定
 		var pos constant.PositionMeta
@@ -62,7 +67,7 @@ func CulTraffice(request *constant.CulTrafficRequest) (response *constant.CulTra
 		/*
 			计算当前船只经纬度所处地图分块
 			对于不在地图经纬度区域内的数据剔除
-		 */
+		*/
 		longitudeArea := helper.LongitudeArea(pos.Longitude, request.LotDivide)
 		latitudeArea := helper.LatitudeArea(pos.Latitude, request.LatDivide)
 		if longitudeArea == -1 || latitudeArea == -1 {
@@ -71,17 +76,17 @@ func CulTraffice(request *constant.CulTrafficRequest) (response *constant.CulTra
 		if pos.Hour > 23 {
 			continue
 		}
-		nowTime := &constant.Data {
-			Year: 	pos.Year,
-			Month: 	pos.Month,
-			Day: 	pos.Day,
-			Hour: 	pos.Hour,
+		nowTime := &constant.Data{
+			Year:  pos.Year,
+			Month: pos.Month,
+			Day:   pos.Day,
+			Hour:  pos.Hour,
 		}
 
 		/*
 			判断日期有没有刷新
 				有：刷新记录
-		 */
+		*/
 		if !helper.DayEqual(preTime, nowTime) {
 			preTime = nowTime
 			for i := 0; i < request.LotDivide; i += 1 {
@@ -120,15 +125,8 @@ func CulTraffice(request *constant.CulTrafficRequest) (response *constant.CulTra
 			}
 		}
 	}
-	//for i := 0; i < request.LotDivide; i += 1 {
-	//	for j := 0; j < request.LatDivide; j += 1 {
-	//		fmt.Println(i, j, ": ")
-	//		fmt.Println(areaTraffic[i][j].ShipMap)
-	//		fmt.Println("Traffic:", areaTraffic[i][j].Traffic)
-	//	}
-	//}
-	//fmt.Println("Latitude", constant.LatitudeMin, "-", constant.LatitudeMax)
-	//fmt.Println("Longitude", constant.LongitudeMin, "-", constant.LongitudeMax)
+
+	// 输出结果
 	fmt.Println("=========DayTraffic=========")
 	for j := request.LatDivide - 1; j >= 0; j -= 1 {
 		for i := 0; i < request.LotDivide; i += 1 {

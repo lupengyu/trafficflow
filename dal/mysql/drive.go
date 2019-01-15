@@ -10,7 +10,7 @@ var DB *sql.DB
 
 func InitMysql() {
 	DB, _ = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/ais")
-	if err := DB.Ping(); err != nil{
+	if err := DB.Ping(); err != nil {
 		log.Println("connect database fail:", err)
 		return
 	}
