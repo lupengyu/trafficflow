@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"time"
 )
 
 var DB *sql.DB
@@ -14,6 +15,9 @@ func InitMysql() {
 		log.Println("connect database fail:", err)
 		return
 	}
+	DB.SetConnMaxLifetime(time.Hour)
+	DB.SetMaxIdleConns(100)
+	DB.SetMaxOpenConns(100)
 	log.Println("connect database success")
 }
 

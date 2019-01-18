@@ -12,6 +12,6 @@ func Test_GetShip(t *testing.T) {
 	}()
 	mysql.InitMysql()
 	body, err := GetShip()
-	assert.Empty(t, err, err)
+	assert.Empty(t, err)
 	assert.Equal(t, 3844, len(body))
 }

@@ -8,6 +8,7 @@ import (
 
 func GetShip() ([]constant.ShipMeta, error) {
 	rows, err := mysql.DB.Query("SELECT * from ship")
+	defer rows.Close()
 	if err != nil {
 		return nil, errors.New("查询出错了: SELECT * from info where MMSI = ")
 	}

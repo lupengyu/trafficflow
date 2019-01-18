@@ -1,10 +1,11 @@
 package constant
 
 const (
-	LongitudeMin float64 = 117.7737
-	LongitudeMax float64 = 118.63037
-	LatitudeMin  float64 = 24.08784
-	LatitudeMax  float64 = 24.691
+	LongitudeMin  float64 = 117.7737
+	LongitudeMax  float64 = 118.63037
+	LatitudeMin   float64 = 24.08784
+	LatitudeMax   float64 = 24.691
+	BigShipLength int     = 100
 )
 
 type ShipMeta struct {
@@ -104,12 +105,42 @@ type CulTrafficResponse struct {
 }
 
 type AreaTraffic struct {
-	ShipMap     map[int]int
-	Traffic     int
-	HourShipMap []map[int]int
-	HourTraffic []int
+	ShipMap               map[int]int   //区域内船舶map		->	日流量
+	Traffic               int           //区域内流量			->	日流量和
+	HourShipMap           []map[int]int //区域内各小时船舶map	->	小时流量
+	HourTraffic           []int         //区域内小时流量		->	小时流量和
+	SmallShipMap          map[int]int   //区域内小船map		->	日小船流量
+	SmallShipTraffic      int           //区域内小船流量		->	日小船流量和
+	HourSmallShipMap      []map[int]int //区域内各小时小船map	->	小时小船流量
+	HourSmallShipTraffic  []int         //区域内小时小船流量	->	小时小船流量和
+	BigShipMap            map[int]int   //区域内大船map		->	日大船流量
+	BigShipTraffic        int           //区域内大船流量		->	日大船流量和
+	HourBigShipMap        []map[int]int //区域内各小时大船map	->	小时大船流量
+	HourBigShipTraffic    []int         //区域内小时大船流量	->	小时大船流量和
+	Type0ShipMap          map[int]int
+	Type0ShipTraffic      int
+	HourType0ShipMap      []map[int]int
+	HourType0ShipTraffic  []int
+	Type6xShipMap         map[int]int
+	Type6xShipTraffic     int
+	HourType6xShipMap     []map[int]int
+	HourType6xShipTraffic []int
+	Type7xShipMap         map[int]int
+	Type7xShipTraffic     int
+	HourType7xShipMap     []map[int]int
+	HourType7xShipTraffic []int
+	Type8xShipMap         map[int]int
+	Type8xShipTraffic     int
+	HourType8xShipMap     []map[int]int
+	HourType8xShipTraffic []int
 }
 
-type TrafficeData struct {
-	HourTrafficSum []int
+type TrafficData struct {
+	HourTrafficSum           []int //各区域小时流量相和			->	总小时流量和
+	HourSmallShipTrafficSum  []int //各区域小时小船流量相和		->	总小时小船流量和
+	HourBigShipTrafficSum    []int //各区域小时大船流量相和		->	总小时大船流量和
+	HourType0ShipTrafficSum  []int
+	HourType6xShipTrafficSum []int
+	HourType7xShipTrafficSum []int
+	HourType8xShipTrafficSum []int
 }

@@ -12,6 +12,6 @@ func Test_GetPositionWithShipID(t *testing.T) {
 	}()
 	mysql.InitMysql()
 	body, err := GetPositionWithShipID("412596777")
-	assert.Empty(t, err, err)
+	assert.Empty(t, err)
 	assert.Equal(t, 570, len(body))
 }
