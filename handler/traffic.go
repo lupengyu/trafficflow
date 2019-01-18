@@ -41,7 +41,12 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 		request.EndTime.Minute, request.EndTime.Minute,
 		request.EndTime.Second,
 	)
-	defer rows.Close()
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -119,15 +124,10 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 	}
 
 	infoMetas := make(map[int]*constant.InfoMeta)
-	//infoMetas, err := sql.InitShipInfo()
-	//if err != nil {
-	//	log.Println(err)
-	//	return nil, err
-	//}
-	//log.Println("InitShipInfo success")
 
 	// 数据循环遍历计算
 	index := 0
+	miss := 0
 	for rows.Next() {
 		// 计数显示
 		if index%10000 == 0 {
@@ -169,8 +169,13 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 		if shipInfo == nil {
 			item, err := sql.GetInfoFirstWithShipID(strconv.Itoa(pos.MMSI))
 			if err != nil {
-				shipInfo = &constant.InfoMeta{}
+				log.Println(err)
+				miss += 1
+				shipInfo = &constant.InfoMeta{ShipType:-1}
 			} else {
+				if item.ShipType == -1 {
+					miss += 1
+				}
 				infoMetas[pos.MMSI] = &item
 				shipInfo = &item
 			}
@@ -354,7 +359,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 	}
 
 	// 输出结果
-	log.Println("Rows:", index)
+	log.Println("Rows:", index, "Miss:", miss)
 	fmt.Println("=========DayTraffic=========")
 	for j := request.LatDivide - 1; j >= 0; j -= 1 {
 		for i := 0; i < request.LotDivide; i += 1 {

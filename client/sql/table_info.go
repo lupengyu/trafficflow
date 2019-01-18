@@ -31,12 +31,17 @@ func GetInfoWithShipID(shipID string) ([]constant.InfoMeta, error) {
 
 func GetInfoFirstWithShipID(shipID string) (constant.InfoMeta, error) {
 	rows, queryErr := mysql.DB.Query("SELECT * from info where MMSI = ? LIMIT 1", shipID)
-	defer rows.Close()
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 	if queryErr != nil {
 		log.Println(queryErr)
 		return constant.InfoMeta{}, errors.New("查询出错了: SELECT * from info where MMSI = " + shipID + " LIMIT 1")
 	}
-	inf := constant.InfoMeta{}
+	inf := constant.InfoMeta{ShipType:-1}
 	if rows.Next() {
 		err := rows.Scan(
 			&inf.ID, &inf.NavigationStatus, &inf.MMSI, &inf.AIS, &inf.IMO, &inf.CallSign, &inf.Name,
