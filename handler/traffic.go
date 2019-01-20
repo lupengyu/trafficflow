@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/lupengyu/trafficflow/client/sql"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/dal/mysql"
@@ -23,6 +22,9 @@ import (
 			船舶大小：
 				小型船:	length < 100m
 				大型船:	length >= 100m
+	TODO:
+		分析港口中辅助船只的类型并加入统计分析
+		加入船只重复率的概念，分析重复航道与纯过路航道(ok)
 */
 func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTrafficResponse, err error) {
 	// 查询时间段内的数据
@@ -171,7 +173,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 			if err != nil {
 				log.Println(err)
 				miss += 1
-				shipInfo = &constant.InfoMeta{ShipType:-1}
+				shipInfo = &constant.InfoMeta{ShipType: -1}
 			} else {
 				if item.ShipType == -1 {
 					miss += 1
@@ -259,7 +261,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 							areaTraffic[i][j].HourType0ShipTraffic[nowTime.Hour] += 1
 							trafficData.HourType0ShipTrafficSum[nowTime.Hour] += 1
 						}
-					} else if shipInfo.ShipType / 10 == 6 {
+					} else if shipInfo.ShipType/10 == 6 {
 						// type 6x
 						if areaTraffic[i][j].Type6xShipMap[pos.MMSI] == 0 {
 							areaTraffic[i][j].Type6xShipMap[pos.MMSI] = 1
@@ -270,7 +272,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 							areaTraffic[i][j].HourType6xShipTraffic[nowTime.Hour] += 1
 							trafficData.HourType6xShipTrafficSum[nowTime.Hour] += 1
 						}
-					} else if shipInfo.ShipType / 10 == 7 {
+					} else if shipInfo.ShipType/10 == 7 {
 						// type 7x
 						if areaTraffic[i][j].Type7xShipMap[pos.MMSI] == 0 {
 							areaTraffic[i][j].Type7xShipMap[pos.MMSI] = 1
@@ -281,7 +283,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 							areaTraffic[i][j].HourType7xShipTraffic[nowTime.Hour] += 1
 							trafficData.HourType7xShipTrafficSum[nowTime.Hour] += 1
 						}
-					} else if shipInfo.ShipType / 10 == 8 {
+					} else if shipInfo.ShipType/10 == 8 {
 						// type 8x
 						if areaTraffic[i][j].Type8xShipMap[pos.MMSI] == 0 {
 							areaTraffic[i][j].Type8xShipMap[pos.MMSI] = 1
@@ -328,7 +330,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 						if areaTraffic[i][j].HourType0ShipMap[nowTime.Hour][pos.MMSI] == 1 {
 							areaTraffic[i][j].HourType0ShipMap[nowTime.Hour][pos.MMSI] = 0
 						}
-					} else if shipInfo.ShipType / 10 == 6 {
+					} else if shipInfo.ShipType/10 == 6 {
 						// type 6x
 						if areaTraffic[i][j].Type6xShipMap[pos.MMSI] == 1 {
 							areaTraffic[i][j].Type6xShipMap[pos.MMSI] = 0
@@ -336,7 +338,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 						if areaTraffic[i][j].HourType6xShipMap[nowTime.Hour][pos.MMSI] == 1 {
 							areaTraffic[i][j].HourType6xShipMap[nowTime.Hour][pos.MMSI] = 0
 						}
-					} else if shipInfo.ShipType / 10 == 7 {
+					} else if shipInfo.ShipType/10 == 7 {
 						// type 7x
 						if areaTraffic[i][j].Type7xShipMap[pos.MMSI] == 1 {
 							areaTraffic[i][j].Type7xShipMap[pos.MMSI] = 0
@@ -344,7 +346,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 						if areaTraffic[i][j].HourType7xShipMap[nowTime.Hour][pos.MMSI] == 1 {
 							areaTraffic[i][j].HourType7xShipMap[nowTime.Hour][pos.MMSI] = 0
 						}
-					} else if shipInfo.ShipType / 10 == 8 {
+					} else if shipInfo.ShipType/10 == 8 {
 						// type 8x
 						if areaTraffic[i][j].Type8xShipMap[pos.MMSI] == 1 {
 							areaTraffic[i][j].Type8xShipMap[pos.MMSI] = 0
@@ -360,74 +362,8 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 
 	// 输出结果
 	log.Println("Rows:", index, "Miss:", miss)
-	fmt.Println("=========DayTraffic=========")
-	for j := request.LatDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < request.LotDivide; i += 1 {
-			fmt.Print(areaTraffic[i][j].Traffic, "\t")
-		}
-		fmt.Print("\n")
-	}
-	fmt.Println("=========DaySmallShipTraffic=========")
-	for j := request.LatDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < request.LotDivide; i += 1 {
-			fmt.Print(areaTraffic[i][j].SmallShipTraffic, "\t")
-		}
-		fmt.Print("\n")
-	}
-	fmt.Println("=========DayBigShipTraffic=========")
-	for j := request.LatDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < request.LotDivide; i += 1 {
-			fmt.Print(areaTraffic[i][j].BigShipTraffic, "\t")
-		}
-		fmt.Print("\n")
-	}
-	fmt.Println("=========DayType0ShipTraffic=========")
-	for j := request.LatDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < request.LotDivide; i += 1 {
-			fmt.Print(areaTraffic[i][j].Type0ShipTraffic, "\t")
-		}
-		fmt.Print("\n")
-	}
-	fmt.Println("=========DayType6xShipTraffic=========")
-	for j := request.LatDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < request.LotDivide; i += 1 {
-			fmt.Print(areaTraffic[i][j].Type6xShipTraffic, "\t")
-		}
-		fmt.Print("\n")
-	}
-	fmt.Println("=========DayType7xShipTraffic=========")
-	for j := request.LatDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < request.LotDivide; i += 1 {
-			fmt.Print(areaTraffic[i][j].Type7xShipTraffic, "\t")
-		}
-		fmt.Print("\n")
-	}
-	fmt.Println("=========DayType8xShipTraffic=========")
-	for j := request.LatDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < request.LotDivide; i += 1 {
-			fmt.Print(areaTraffic[i][j].Type8xShipTraffic, "\t")
-		}
-		fmt.Print("\n")
-	}
-	fmt.Println("=========HourTraffic=========")
-	fmt.Println("Hour, Traffic, BigShipTraffic, SmallShipTraffic Type0ShipTraffic Type6xShipTraffic Type7xShipTraffic Type8xShipTraffic")
-	for i := 0; i < 24; i += 1 {
-		fmt.Println(i, ":", trafficData.HourTrafficSum[i], trafficData.HourBigShipTrafficSum[i], trafficData.HourSmallShipTrafficSum[i], trafficData.HourType0ShipTrafficSum[i], trafficData.HourType6xShipTrafficSum[i], trafficData.HourType7xShipTrafficSum[i], trafficData.HourType8xShipTrafficSum[i])
-	}
-	fmt.Println("=========AreaTraffic=========")
-	for j := request.LatDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < request.LotDivide; i += 1 {
-			fmt.Println(i, ",", j, ":")
-			fmt.Println("Traffic:                  ", areaTraffic[i][j].Traffic)
-			fmt.Println("Hour Traffic:             ", areaTraffic[i][j].HourTraffic)
-			fmt.Println("Hour Big Ship Traffic:    ", areaTraffic[i][j].HourBigShipTraffic)
-			fmt.Println("Hour Small Ship Traffic:  ", areaTraffic[i][j].HourSmallShipTraffic)
-			fmt.Println("Hour Type 0 Ship Traffic: ", areaTraffic[i][j].HourType0ShipTraffic)
-			fmt.Println("Hour Type 6x Ship Traffic:", areaTraffic[i][j].HourType6xShipTraffic)
-			fmt.Println("Hour Type 7x Ship Traffic:", areaTraffic[i][j].HourType7xShipTraffic)
-			fmt.Println("Hour Type 8x Ship Traffic:", areaTraffic[i][j].HourType8xShipTraffic)
-			fmt.Println("==================")
-		}
-	}
-	return nil, nil
+	return &constant.CulTrafficResponse{
+		AreaTraffics: areaTraffic,
+		TrafficData:  trafficData,
+	}, nil
 }

@@ -101,7 +101,8 @@ type CulTrafficRequest struct {
 }
 
 type CulTrafficResponse struct {
-	Traffic map[string]int
+	AreaTraffics [][]AreaTraffic
+	TrafficData  *TrafficData
 }
 
 type AreaTraffic struct {

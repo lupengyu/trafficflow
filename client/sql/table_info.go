@@ -41,7 +41,7 @@ func GetInfoFirstWithShipID(shipID string) (constant.InfoMeta, error) {
 		log.Println(queryErr)
 		return constant.InfoMeta{}, errors.New("查询出错了: SELECT * from info where MMSI = " + shipID + " LIMIT 1")
 	}
-	inf := constant.InfoMeta{ShipType:-1}
+	inf := constant.InfoMeta{ShipType: -1}
 	if rows.Next() {
 		err := rows.Scan(
 			&inf.ID, &inf.NavigationStatus, &inf.MMSI, &inf.AIS, &inf.IMO, &inf.CallSign, &inf.Name,
