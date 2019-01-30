@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/lupengyu/trafficflow/client/sql"
 	"github.com/lupengyu/trafficflow/constant"
-	"github.com/lupengyu/trafficflow/dal/mysql"
 	"github.com/lupengyu/trafficflow/helper"
 	"log"
 	"strconv"
@@ -28,21 +27,10 @@ import (
 */
 func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTrafficResponse, err error) {
 	// 查询时间段内的数据
-	rows, err := mysql.DB.Query(
-		"select * from position where (year > ? or year = ? and (month > ? or month = ? and (day > ? or day = ? and (hour > ? or hour = ? and (minute > ? or minute = ? and second >= ?))))) and (year < ? or year = ? and (month < ? or month = ? and (day < ? or day = ? and (hour < ? or hour = ? and (minute < ? or minute = ? and second <= ?))))) order by id",
-		request.StartTime.Year, request.StartTime.Year,
-		request.StartTime.Month, request.StartTime.Month,
-		request.StartTime.Day, request.StartTime.Day,
-		request.StartTime.Hour, request.StartTime.Hour,
-		request.StartTime.Minute, request.StartTime.Minute,
-		request.StartTime.Second,
-		request.EndTime.Year, request.EndTime.Year,
-		request.EndTime.Month, request.EndTime.Month,
-		request.EndTime.Day, request.EndTime.Day,
-		request.EndTime.Hour, request.EndTime.Hour,
-		request.EndTime.Minute, request.EndTime.Minute,
-		request.EndTime.Second,
-	)
+	rows, err := sql.GetPositionWithDuration(request.StartTime, request.EndTime)
+	if err != nil {
+		return nil, err
+	}
 	defer func() {
 		err := rows.Close()
 		if err != nil {

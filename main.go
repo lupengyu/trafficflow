@@ -104,5 +104,6 @@ func culDensity() {
 
 func main() {
 	mysql.InitMysql()
+	//culTraffice()
 	culDensity()
 }

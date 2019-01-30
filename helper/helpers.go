@@ -194,11 +194,59 @@ func CulTrafficResponsePrint(response *constant.CulTrafficResponse, lotDivide in
 }
 
 func CulDensityResponsePrint(response *constant.CulDensityResponse, lotDivide int, latDivide int) {
-	fmt.Println("shipDensity:", response.Density)
+	fmt.Println("ShipDensity:", response.DensityData.Density)
+	fmt.Println("SmallShipDensity:", response.DensityData.SmallShipDensity)
+	fmt.Println("BigShipDensity:", response.DensityData.BigShipDensity)
+	fmt.Println("Type0ShipDensity:", response.DensityData.Type0Density)
+	fmt.Println("Type6xShipDensity:", response.DensityData.Type6xDensity)
+	fmt.Println("Type7xShipDensity:", response.DensityData.Type7xDensity)
+	fmt.Println("Type8xShipDensity:", response.DensityData.Type8xDensity)
 	fmt.Println("=========AreaDensity=========")
 	for j := latDivide - 1; j >= 0; j -= 1 {
 		for i := 0; i < lotDivide; i += 1 {
 			fmt.Printf("%8d", response.AreaDensity[i][j].Density)
+		}
+		fmt.Print("\n")
+	}
+	fmt.Println("=========AreaSmallShipDensity=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%8d", response.AreaDensity[i][j].SmallShipDensity)
+		}
+		fmt.Print("\n")
+	}
+	fmt.Println("=========AreaBigShipDensity=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%8d", response.AreaDensity[i][j].BigShipDensity)
+		}
+		fmt.Print("\n")
+	}
+	fmt.Println("=========AreaType0Density=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%8d", response.AreaDensity[i][j].Type0Density)
+		}
+		fmt.Print("\n")
+	}
+	fmt.Println("=========AreaType6xDensity=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%8d", response.AreaDensity[i][j].Type6xDensity)
+		}
+		fmt.Print("\n")
+	}
+	fmt.Println("=========AreaType7xDensity=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%8d", response.AreaDensity[i][j].Type7xDensity)
+		}
+		fmt.Print("\n")
+	}
+	fmt.Println("=========AreaType8xDensity=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%8d", response.AreaDensity[i][j].Type8xDensity)
 		}
 		fmt.Print("\n")
 	}
