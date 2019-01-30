@@ -154,4 +154,11 @@ type CulDensityRequest struct {
 }
 
 type CulDensityResponse struct {
+	Density     int
+	AreaDensity [][]AreaDensity
+}
+
+type AreaDensity struct {
+	ShipMap map[int]int //区域内船舶map
+	Density int         //区域内密度
 }

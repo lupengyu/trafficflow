@@ -194,5 +194,12 @@ func CulTrafficResponsePrint(response *constant.CulTrafficResponse, lotDivide in
 }
 
 func CulDensityResponsePrint(response *constant.CulDensityResponse, lotDivide int, latDivide int) {
-
+	fmt.Println("shipDensity:", response.Density)
+	fmt.Println("=========AreaDensity=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%8d", response.AreaDensity[i][j].Density)
+		}
+		fmt.Print("\n")
+	}
 }
