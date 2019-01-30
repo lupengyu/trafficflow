@@ -3,6 +3,7 @@ package helper
 import (
 	"fmt"
 	"github.com/lupengyu/trafficflow/constant"
+	"time"
 )
 
 func LongitudeArea(longitude float64, lotDivide int) int {
@@ -58,6 +59,34 @@ func DayEqual(data1 *constant.Data, data2 *constant.Data) bool {
 		return true
 	}
 	return false
+}
+
+func DayDecrease(data *constant.Data, delta *constant.Data) *constant.Data {
+	baseTime := time.Date(data.Year, time.Month(data.Month), data.Day, data.Hour, data.Minute, data.Second, 0, time.UTC)
+	deltaTime := time.Duration(delta.Hour)*time.Hour - time.Duration(delta.Minute)*time.Minute - time.Duration(delta.Second)*time.Second
+	resultTime := baseTime.Add(deltaTime)
+	return &constant.Data{
+		Year:   resultTime.Year(),
+		Month:  int(resultTime.Month()),
+		Day:    resultTime.Day(),
+		Hour:   resultTime.Hour(),
+		Minute: resultTime.Minute(),
+		Second: resultTime.Second(),
+	}
+}
+
+func DayIncrease(data *constant.Data, delta *constant.Data) *constant.Data {
+	baseTime := time.Date(data.Year, time.Month(data.Month), data.Day, data.Hour, data.Minute, data.Second, 0, time.UTC)
+	deltaTime := time.Duration(delta.Hour)*time.Hour + time.Duration(delta.Minute)*time.Minute + time.Duration(delta.Second)*time.Second
+	resultTime := baseTime.Add(deltaTime)
+	return &constant.Data{
+		Year:   resultTime.Year(),
+		Month:  int(resultTime.Month()),
+		Day:    resultTime.Day(),
+		Hour:   resultTime.Hour(),
+		Minute: resultTime.Minute(),
+		Second: resultTime.Second(),
+	}
 }
 
 func SliceSum(slice []int) int {
@@ -162,4 +191,8 @@ func CulTrafficResponsePrint(response *constant.CulTrafficResponse, lotDivide in
 			fmt.Println("==================")
 		}
 	}
+}
+
+func CulDensityResponsePrint(response *constant.CulDensityResponse, lotDivide int, latDivide int) {
+
 }

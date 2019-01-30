@@ -145,3 +145,13 @@ type TrafficData struct {
 	HourType7xShipTrafficSum []int
 	HourType8xShipTrafficSum []int
 }
+
+type CulDensityRequest struct {
+	Time      *Data
+	DeltaT    *Data
+	LotDivide int
+	LatDivide int
+}
+
+type CulDensityResponse struct {
+}

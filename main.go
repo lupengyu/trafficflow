@@ -8,9 +8,10 @@ import (
 	"log"
 )
 
-func main() {
-	// Traffic 船舶交通量统计
-	mysql.InitMysql()
+/*
+	Traffic 船舶交通量统计
+*/
+func culTraffice() {
 	lotDivide := 10
 	latDivide := 10
 	//var day float64 = 1
@@ -22,6 +23,7 @@ func main() {
 	//			Day:    25,
 	//			Hour:   0,
 	//			Minute: 0,
+	//          Second: 0,
 	//		},
 	//		EndTime: &constant.Data{
 	//			Year:   2018,
@@ -29,6 +31,7 @@ func main() {
 	//			Day:    25,
 	//			Hour:   23,
 	//			Minute: 59,
+	//          Second: 59,
 	//		},
 	//		LotDivide: lotDivide,
 	//		LatDivide: latDivide,
@@ -43,6 +46,7 @@ func main() {
 				Day:    22,
 				Hour:   0,
 				Minute: 0,
+				Second: 0,
 			},
 			EndTime: &constant.Data{
 				Year:   2019,
@@ -50,13 +54,41 @@ func main() {
 				Day:    2,
 				Hour:   23,
 				Minute: 59,
+				Second: 59,
 			},
-			LotDivide: 10,
-			LatDivide: 10,
+			LotDivide: lotDivide,
+			LatDivide: latDivide,
 		},
 	)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	helper.CulTrafficResponsePrint(response, lotDivide, latDivide, day)
+}
+
+/*
+	Density 船舶密度统计
+*/
+func culDensity() {
+	lotDivide := 10
+	latDivide := 10
+	response, err := handler.CulDensity(
+		&constant.CulDensityRequest{
+			Time:      &constant.Data{},
+			DeltaT:    &constant.Data{},
+			LotDivide: lotDivide,
+			LatDivide: latDivide,
+		},
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	helper.CulDensityResponsePrint(response, lotDivide, latDivide)
+}
+
+func main() {
+	mysql.InitMysql()
+	culDensity()
 }

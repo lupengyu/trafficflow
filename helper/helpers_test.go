@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"github.com/lupengyu/trafficflow/constant"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -19,4 +20,44 @@ func Test_LatitudeArea(t *testing.T) {
 	assert.Equal(t, 0, LatitudeArea(24.1, 10))
 	assert.Equal(t, 4, LatitudeArea(24.5, 10))
 	assert.Equal(t, 7, LatitudeArea(24.8, 10))
+}
+
+func Test_DayDecrease(t *testing.T) {
+	baseTime := &constant.Data{
+		Year:   2019,
+		Month:  1,
+		Day:    1,
+		Hour:   0,
+		Minute: 0,
+		Second: 0,
+	}
+	deltaTime := &constant.Data{
+		Year:   0,
+		Month:  0,
+		Day:    0,
+		Hour:   0,
+		Minute: 1,
+		Second: 0,
+	}
+	t.Log(DayDecrease(baseTime, deltaTime))
+}
+
+func Test_DayIncrease(t *testing.T) {
+	baseTime := &constant.Data{
+		Year:   2019,
+		Month:  1,
+		Day:    1,
+		Hour:   0,
+		Minute: 0,
+		Second: 0,
+	}
+	deltaTime := &constant.Data{
+		Year:   0,
+		Month:  0,
+		Day:    0,
+		Hour:   0,
+		Minute: 1,
+		Second: 0,
+	}
+	t.Log(DayIncrease(baseTime, deltaTime))
 }
