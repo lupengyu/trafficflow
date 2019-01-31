@@ -159,7 +159,7 @@ type CulDensityResponse struct {
 }
 
 type DensityData struct {
-	Density          int
+	ShipDensity      int
 	SmallShipDensity int
 	BigShipDensity   int
 	Type0Density     int
@@ -183,4 +183,29 @@ type AreaDensity struct {
 	Type7xDensity    int
 	Type8xShipMap    map[int]int
 	Type8xDensity    int
+}
+
+type CulSpeedRequest struct {
+	Time      *Data
+	DeltaT    *Data
+	LotDivide int
+	LatDivide int
+}
+
+type CulSpeedResponse struct {
+	SpeedData *SpeedData
+	AreaSpeed [][]AreaSpeed
+}
+
+type SpeedData struct {
+	ShipSpeed      float64
+	ShipCnt        int
+	ShipSpeedRange []int
+}
+
+type AreaSpeed struct {
+	ShipSpeed       float64
+	ShipCnt         int
+	ShipSpeedSumMap map[int]float64
+	ShipSpeedCnt    map[int]int
 }

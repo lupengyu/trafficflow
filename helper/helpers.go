@@ -34,6 +34,19 @@ func LatitudeArea(latitude float64, latDivide int) int {
 	return -1
 }
 
+func SpeedRange(sog float64) int {
+	if sog <= 5 {
+		return 0
+	} else if sog > 5 && sog <= 10 {
+		return 1
+	} else if sog > 10 && sog <= 15 {
+		return 2
+	} else if sog > 15 && sog <= 20 {
+		return 3
+	}
+	return 4
+}
+
 func DataEqual(data1 *constant.Data, data2 *constant.Data) bool {
 	if data1 == nil || data2 == nil {
 		return false
@@ -194,10 +207,10 @@ func CulTrafficResponsePrint(response *constant.CulTrafficResponse, lotDivide in
 }
 
 func CulDensityResponsePrint(response *constant.CulDensityResponse, lotDivide int, latDivide int) {
-	fmt.Println("ShipDensity:", response.DensityData.Density)
-	fmt.Println("SmallShipDensity:", response.DensityData.SmallShipDensity)
-	fmt.Println("BigShipDensity:", response.DensityData.BigShipDensity)
-	fmt.Println("Type0ShipDensity:", response.DensityData.Type0Density)
+	fmt.Println("ShipDensity:      ", response.DensityData.ShipDensity)
+	fmt.Println("SmallShipDensity: ", response.DensityData.SmallShipDensity)
+	fmt.Println("BigShipDensity:   ", response.DensityData.BigShipDensity)
+	fmt.Println("Type0ShipDensity: ", response.DensityData.Type0Density)
 	fmt.Println("Type6xShipDensity:", response.DensityData.Type6xDensity)
 	fmt.Println("Type7xShipDensity:", response.DensityData.Type7xDensity)
 	fmt.Println("Type8xShipDensity:", response.DensityData.Type8xDensity)
@@ -247,6 +260,19 @@ func CulDensityResponsePrint(response *constant.CulDensityResponse, lotDivide in
 	for j := latDivide - 1; j >= 0; j -= 1 {
 		for i := 0; i < lotDivide; i += 1 {
 			fmt.Printf("%8d", response.AreaDensity[i][j].Type8xDensity)
+		}
+		fmt.Print("\n")
+	}
+}
+
+func CulSpeedResponsePrint(response *constant.CulSpeedResponse, lotDivide int, latDivide int) {
+	fmt.Println("ShipCnt       :", response.SpeedData.ShipCnt)
+	fmt.Println("ShipSpeed     :", response.SpeedData.ShipSpeed)
+	fmt.Println("ShipSpeedRange:", response.SpeedData.ShipSpeedRange)
+	fmt.Println("=========AreaShipSpeed=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%2d %6.2f|", response.AreaSpeed[i][j].ShipCnt, response.AreaSpeed[i][j].ShipSpeed)
 		}
 		fmt.Print("\n")
 	}

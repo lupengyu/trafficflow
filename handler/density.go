@@ -257,7 +257,7 @@ func CulDensity(request *constant.CulDensityRequest) (response *constant.CulDens
 	log.Println("Rows:", index, "Miss:", miss)
 	return &constant.CulDensityResponse{
 		DensityData: &constant.DensityData{
-			Density:          shipDensity,
+			ShipDensity:      shipDensity,
 			SmallShipDensity: smallShipDensity,
 			BigShipDensity:   bigShipDensity,
 			Type0Density:     type0ShipDensity,
