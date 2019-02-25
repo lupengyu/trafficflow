@@ -105,7 +105,7 @@ func culDensity() {
 /*
 	Speed 船舶航速统计
 */
-func CulSpeed() {
+func culSpeed() {
 	lotDivide := 10
 	latDivide := 10
 	response, err := handler.CulSpeed(
@@ -137,9 +137,62 @@ func CulSpeed() {
 	helper.CulSpeedResponsePrint(response, lotDivide, latDivide)
 }
 
+func culDoorLine() {
+	response, err := handler.CulDoorLine(
+		&constant.CulDoorLineRequest{
+			//StartPosition: &constant.Position{
+			//	Longitude: 118.04939,
+			//	Latitude:  24.444706,
+			//},
+			//EndPosition: &constant.Position{
+			//	Longitude: 118.074398,
+			//	Latitude:  24.41378,
+			//},
+			//StartPosition: &constant.Position{
+			//	Longitude: 118.124272,
+			//	Latitude:  24.244077,
+			//},
+			//EndPosition: &constant.Position{
+			//	Longitude: 118.319528,
+			//	Latitude:  24.393509,
+			//},
+			StartPosition: &constant.Position{
+				Longitude: 118.344824,
+				Latitude:  24.393509,
+			},
+			EndPosition: &constant.Position{
+				Longitude: 118.593188,
+				Latitude:  24.221604,
+			},
+			StartTime: &constant.Data{
+				Year:   2018,
+				Month:  12,
+				Day:    25,
+				Hour:   0,
+				Minute: 0,
+				Second: 0,
+			},
+			EndTime: &constant.Data{
+				Year:   2018,
+				Month:  12,
+				Day:    25,
+				Hour:   23,
+				Minute: 59,
+				Second: 59,
+			},
+		},
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	helper.CulDoorLineResponsePrint(response)
+}
+
 func main() {
 	mysql.InitMysql()
 	//culTraffic()
 	//culDensity()
-	CulSpeed()
+	//culSpeed()
+	culDoorLine()
 }

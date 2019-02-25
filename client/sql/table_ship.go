@@ -16,7 +16,7 @@ func GetShip() ([]constant.ShipMeta, error) {
 		}
 	}()
 	if err != nil {
-		return nil, errors.New("查询出错了: SELECT * from info where MMSI = ")
+		return nil, errors.New("查询出错了: SELECT * from ship")
 	}
 	ships := make([]constant.ShipMeta, 0)
 	for rows.Next() {

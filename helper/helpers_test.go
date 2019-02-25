@@ -61,3 +61,24 @@ func Test_DayIncrease(t *testing.T) {
 	}
 	t.Log(DayIncrease(baseTime, deltaTime))
 }
+
+func Test_IsLineInterSect(t *testing.T) {
+	assert.Equal(t, true, IsLineInterSect(
+		&constant.Position{Latitude: 0, Longitude: 0},
+		&constant.Position{Latitude: 0, Longitude: 1},
+		&constant.Position{Latitude: 0, Longitude: 1},
+		&constant.Position{Latitude: 1, Longitude: 1},
+	))
+	assert.Equal(t, false, IsLineInterSect(
+		&constant.Position{Latitude: 0, Longitude: 0},
+		&constant.Position{Latitude: 0, Longitude: 1},
+		&constant.Position{Latitude: 0, Longitude: 2},
+		&constant.Position{Latitude: 1, Longitude: 1},
+	))
+	assert.Equal(t, true, IsLineInterSect(
+		&constant.Position{Latitude: 0, Longitude: 0},
+		&constant.Position{Latitude: 0, Longitude: 1},
+		&constant.Position{Latitude: -1, Longitude: 0},
+		&constant.Position{Latitude: 1, Longitude: 0},
+	))
+}

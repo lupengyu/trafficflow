@@ -110,6 +110,14 @@ func SliceSum(slice []int) int {
 	return sum
 }
 
+func IsLineInterSect(a *constant.Position, b *constant.Position, c *constant.Position, d *constant.Position) bool {
+	u := (c.Longitude-a.Longitude)*(b.Latitude-a.Latitude) - (b.Longitude-a.Longitude)*(c.Latitude-a.Latitude)
+	v := (d.Longitude-a.Longitude)*(b.Latitude-a.Latitude) - (b.Longitude-a.Longitude)*(d.Latitude-a.Latitude)
+	w := (a.Longitude-c.Longitude)*(d.Latitude-c.Latitude) - (d.Longitude-c.Longitude)*(a.Latitude-c.Latitude)
+	z := (b.Longitude-c.Longitude)*(d.Latitude-c.Latitude) - (d.Longitude-c.Longitude)*(b.Latitude-c.Latitude)
+	return u*v <= 0.00000001 && w*z <= 0.00000001
+}
+
 func SliceDividePrintln(slice []int, divisor float64) {
 	for _, v := range slice {
 		fmt.Printf("%8.2f", float64(v)/divisor)
@@ -276,4 +284,9 @@ func CulSpeedResponsePrint(response *constant.CulSpeedResponse, lotDivide int, l
 		}
 		fmt.Print("\n")
 	}
+}
+
+func CulDoorLineResponsePrint(response *constant.CulDoorLineResponse) {
+	fmt.Println("Cnt           ", response.Cnt)
+	fmt.Println("DeWeightingCnt", response.DeWeightingCnt)
 }

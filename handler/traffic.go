@@ -37,9 +37,6 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 			log.Println(err)
 		}
 	}()
-	if err != nil {
-		return nil, err
-	}
 
 	// 初始化初始数据
 	preTime := &constant.Data{

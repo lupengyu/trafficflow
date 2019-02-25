@@ -209,3 +209,25 @@ type AreaSpeed struct {
 	ShipSpeedSumMap map[int]float64
 	ShipSpeedCnt    map[int]int
 }
+
+type Position struct {
+	Longitude float64
+	Latitude  float64
+}
+
+type Track struct {
+	PrePosition      *Position
+	DeWeightDoorLine bool
+}
+
+type CulDoorLineRequest struct {
+	StartPosition *Position
+	EndPosition   *Position
+	StartTime     *Data
+	EndTime       *Data
+}
+
+type CulDoorLineResponse struct {
+	Cnt            int
+	DeWeightingCnt int
+}
