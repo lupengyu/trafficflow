@@ -3,6 +3,7 @@ package helper
 import (
 	"fmt"
 	"github.com/lupengyu/trafficflow/constant"
+	"math"
 	"time"
 )
 
@@ -116,6 +117,75 @@ func IsLineInterSect(a *constant.Position, b *constant.Position, c *constant.Pos
 	w := (a.Longitude-c.Longitude)*(d.Latitude-c.Latitude) - (d.Longitude-c.Longitude)*(a.Latitude-c.Latitude)
 	z := (b.Longitude-c.Longitude)*(d.Latitude-c.Latitude) - (d.Longitude-c.Longitude)*(b.Latitude-c.Latitude)
 	return u*v <= 0.00000001 && w*z <= 0.00000001
+}
+
+func TimeDeviation(a *constant.Data, b *constant.Data) int64 {
+	aTime := time.Date(a.Year, time.Month(a.Month), a.Day, a.Hour, a.Minute, a.Second, 0, time.UTC)
+	bTime := time.Date(b.Year, time.Month(b.Month), b.Day, b.Hour, b.Minute, b.Second, 0, time.UTC)
+	delta := aTime.Unix() - bTime.Unix()
+	return delta
+}
+
+func PositionSpacing(a *constant.Position, b *constant.Position) float64 {
+	radius := 6378.137
+	rad := math.Pi / 180.0
+	lat1 := a.Latitude * rad
+	lng1 := a.Longitude * rad
+	lat2 := b.Latitude * rad
+	lng2 := b.Longitude * rad
+	theta := lng2 - lng1
+	dist := math.Acos(math.Sin(lat1)*math.Sin(lat2) + math.Cos(lat1)*math.Cos(lat2)*math.Cos(theta))
+	return dist * radius * 1000
+}
+
+func TrackDifference(tracks []*constant.Track) *constant.Track {
+	if len(tracks) == 0 {
+		return nil
+	} else if len(tracks) == 1 {
+		return &constant.Track{
+			PrePosition: tracks[0].PrePosition,
+		}
+	} else {
+		// track1(low) - track2(height)
+		for i := 0; i < len(tracks); i++ {
+			track := tracks[i]
+			if track.Deviation == 0 {
+				return &constant.Track{
+					PrePosition: tracks[0].PrePosition,
+				}
+			}
+		}
+		track1 := tracks[0]
+		track2 := tracks[1]
+		if math.Abs(float64(track2.Deviation)) < math.Abs(float64(track1.Deviation)) {
+			tmp := track1
+			track1 = track2
+			track2 = tmp
+		}
+		for i := 2; i < len(tracks); i++ {
+			track := tracks[i]
+			if math.Abs(float64(track.Deviation)) < math.Abs(float64(track1.Deviation)) {
+				track2 = track1
+				track1 = track
+			} else if math.Abs(float64(track.Deviation)) < math.Abs(float64(track2.Deviation)) {
+				track2 = track
+			}
+		}
+		diff := track1.Deviation - track2.Deviation
+		if diff == 0 {
+			return &constant.Track{
+				PrePosition: track1.PrePosition,
+			}
+		}
+		longitudeK := (track1.PrePosition.Longitude - track2.PrePosition.Longitude) / float64(diff)
+		latitudeK := (track1.PrePosition.Latitude - track2.PrePosition.Latitude) / float64(diff)
+		return &constant.Track{
+			PrePosition: &constant.Position{
+				Longitude: track1.PrePosition.Longitude - float64(track1.Deviation)*longitudeK,
+				Latitude:  track1.PrePosition.Latitude - float64(track1.Deviation)*latitudeK,
+			},
+		}
+	}
 }
 
 func SliceDividePrintln(slice []int, divisor float64) {
@@ -289,4 +359,12 @@ func CulSpeedResponsePrint(response *constant.CulSpeedResponse, lotDivide int, l
 func CulDoorLineResponsePrint(response *constant.CulDoorLineResponse) {
 	fmt.Println("Cnt           ", response.Cnt)
 	fmt.Println("DeWeightingCnt", response.DeWeightingCnt)
+}
+
+func CulSpacingResponsePrint(response *constant.CulSpacingResponse) {
+	fmt.Println("MinSpacing  :", response.MinSpacing, " ", response.MinSpaceA, "(", response.APosition.Longitude, response.APosition.Latitude, ")", "---", response.MinSpaceB, "(", response.BPosition.Longitude, response.BPosition.Latitude, ")")
+	fmt.Println("SpacingRange:", response.SpacingRange)
+	for k, v := range response.SpacingMap {
+		fmt.Println(k, ":", v)
+	}
 }

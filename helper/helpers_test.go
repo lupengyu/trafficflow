@@ -82,3 +82,50 @@ func Test_IsLineInterSect(t *testing.T) {
 		&constant.Position{Latitude: 1, Longitude: 0},
 	))
 }
+
+func Test_TimeDeviation(t *testing.T) {
+	assert.EqualValues(t, 10, TimeDeviation(
+		&constant.Data{
+			Year:   2019,
+			Month:  1,
+			Day:    1,
+			Hour:   0,
+			Minute: 0,
+			Second: 0,
+		}, &constant.Data{
+			Year:   2019,
+			Month:  1,
+			Day:    1,
+			Hour:   0,
+			Minute: 0,
+			Second: 10,
+		},
+	))
+	assert.EqualValues(t, 40, TimeDeviation(
+		&constant.Data{
+			Year:   2019,
+			Month:  1,
+			Day:    1,
+			Hour:   1,
+			Minute: 0,
+			Second: 10,
+		}, &constant.Data{
+			Year:   2019,
+			Month:  1,
+			Day:    1,
+			Hour:   0,
+			Minute: 59,
+			Second: 30,
+		},
+	))
+}
+
+func Test_PositionSpacing(t *testing.T) {
+	t.Log(PositionSpacing(&constant.Position{
+		Longitude: 118.148778,
+		Latitude:  24.28328,
+	}, &constant.Position{
+		Longitude: 118.330451,
+		Latitude:  24.388639,
+	}))
+}

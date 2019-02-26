@@ -218,6 +218,8 @@ type Position struct {
 type Track struct {
 	PrePosition      *Position
 	DeWeightDoorLine bool
+	Time             *Data
+	Deviation        int64
 }
 
 type CulDoorLineRequest struct {
@@ -230,4 +232,19 @@ type CulDoorLineRequest struct {
 type CulDoorLineResponse struct {
 	Cnt            int
 	DeWeightingCnt int
+}
+
+type CulSpacingRequest struct {
+	Time   *Data
+	DeltaT *Data
+}
+
+type CulSpacingResponse struct {
+	MinSpacing float64
+	MinSpaceA  int
+	MinSpaceB  int
+	APosition  *Position
+	BPosition  *Position
+	SpacingMap map[int]float64
+	SpacingRange []int
 }

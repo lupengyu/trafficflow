@@ -189,10 +189,39 @@ func culDoorLine() {
 	helper.CulDoorLineResponsePrint(response)
 }
 
+func culSpacing() {
+	response, err := handler.CulSpacing(
+		&constant.CulSpacingRequest{
+			Time: &constant.Data{
+				Year:   2019,
+				Month:  1,
+				Day:    1,
+				Hour:   0,
+				Minute: 0,
+				Second: 0,
+			},
+			DeltaT: &constant.Data{
+				Year:   0,
+				Month:  0,
+				Day:    0,
+				Hour:   0,
+				Minute: 1,
+				Second: 0,
+			},
+		},
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	helper.CulSpacingResponsePrint(response)
+}
+
 func main() {
 	mysql.InitMysql()
 	//culTraffic()
 	//culDensity()
 	//culSpeed()
-	culDoorLine()
+	//culDoorLine()
+	culSpacing()
 }
