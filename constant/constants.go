@@ -240,11 +240,11 @@ type CulSpacingRequest struct {
 }
 
 type CulSpacingResponse struct {
-	MinSpacing float64
-	MinSpaceA  int
-	MinSpaceB  int
-	APosition  *Position
-	BPosition  *Position
-	SpacingMap map[int]float64
+	MinSpacing   float64
+	MinSpaceA    int
+	MinSpaceB    int
+	APosition    *Position
+	BPosition    *Position
+	SpacingMap   map[int]float64
 	SpacingRange []int
 }
