@@ -14,52 +14,52 @@ import (
 func culTraffic() {
 	lotDivide := 10
 	latDivide := 10
-	//var day float64 = 1
-	//response, err := handler.CulTraffic(
-	//	&constant.CulTrafficRequest{
-	//		StartTime: &constant.Data{
-	//			Year:   2018,
-	//			Month:  12,
-	//			Day:    25,
-	//			Hour:   0,
-	//			Minute: 0,
-	//          Second: 0,
-	//		},
-	//		EndTime: &constant.Data{
-	//			Year:   2018,
-	//			Month:  12,
-	//			Day:    25,
-	//			Hour:   23,
-	//			Minute: 59,
-	//          Second: 59,
-	//		},
-	//		LotDivide: lotDivide,
-	//		LatDivide: latDivide,
-	//	},
-	//)
-	var day float64 = 12
+	var day float64 = 1
 	response, err := handler.CulTraffic(
 		&constant.CulTrafficRequest{
 			StartTime: &constant.Data{
 				Year:   2018,
 				Month:  12,
-				Day:    22,
+				Day:    25,
 				Hour:   0,
 				Minute: 0,
-				Second: 0,
+	         Second: 0,
 			},
 			EndTime: &constant.Data{
-				Year:   2019,
-				Month:  1,
-				Day:    2,
+				Year:   2018,
+				Month:  12,
+				Day:    25,
 				Hour:   23,
 				Minute: 59,
-				Second: 59,
+	         Second: 59,
 			},
 			LotDivide: lotDivide,
 			LatDivide: latDivide,
 		},
 	)
+	//var day float64 = 12
+	//response, err := handler.CulTraffic(
+	//	&constant.CulTrafficRequest{
+	//		StartTime: &constant.Data{
+	//			Year:   2018,
+	//			Month:  12,
+	//			Day:    22,
+	//			Hour:   0,
+	//			Minute: 0,
+	//			Second: 0,
+	//		},
+	//		EndTime: &constant.Data{
+	//			Year:   2019,
+	//			Month:  1,
+	//			Day:    2,
+	//			Hour:   23,
+	//			Minute: 59,
+	//			Second: 59,
+	//		},
+	//		LotDivide: lotDivide,
+	//		LatDivide: latDivide,
+	//	},
+	//)
 	if err != nil {
 		log.Println(err)
 		return
@@ -223,5 +223,5 @@ func main() {
 	//culDensity()
 	//culSpeed()
 	//culDoorLine()
-	culSpacing()
+	//culSpacing()
 }

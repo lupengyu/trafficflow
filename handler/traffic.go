@@ -136,6 +136,9 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 			计算当前船只经纬度所处地图分块
 			对于不在地图经纬度区域内的数据剔除
 		*/
+		if pos.SOG == 0 {
+			continue
+		}
 		longitudeArea := helper.LongitudeArea(pos.Longitude, request.LotDivide)
 		latitudeArea := helper.LatitudeArea(pos.Latitude, request.LatDivide)
 		if longitudeArea == -1 || latitudeArea == -1 {
