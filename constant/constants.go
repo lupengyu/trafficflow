@@ -248,3 +248,16 @@ type CulSpacingResponse struct {
 	SpacingMap   map[int]float64
 	SpacingRange []int
 }
+
+type CulMeetingRequest struct {
+	StartTime *Data
+	EndTime   *Data
+	DeltaT    *Data
+	TimeRange *Data
+	LotDivide int
+	LatDivide int
+}
+
+type CulMeetingResponse struct {
+
+}

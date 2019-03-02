@@ -103,6 +103,19 @@ func DayIncrease(data *constant.Data, delta *constant.Data) *constant.Data {
 	}
 }
 
+/*
+	if a >= b
+		return true
+	else
+		return false
+*/
+func DayBigger(a *constant.Data, b *constant.Data) bool {
+	if TimeDeviation(a, b) >= 0 {
+		return true
+	}
+	return false
+}
+
 func SliceSum(slice []int) int {
 	sum := 0
 	for _, v := range slice {
@@ -367,4 +380,8 @@ func CulSpacingResponsePrint(response *constant.CulSpacingResponse) {
 	for k, v := range response.SpacingMap {
 		fmt.Println(k, ":", v)
 	}
+}
+
+func CulMeetingResponsePrint(response *constant.CulMeetingResponse) {
+
 }
