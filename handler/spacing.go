@@ -169,5 +169,6 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 		BPosition:    bPosition,
 		SpacingMap:   spacing,
 		SpacingRange: spacingRange,
+		ShipSpacing:  shipSpacing,
 	}, nil
 }

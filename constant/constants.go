@@ -1,11 +1,13 @@
 package constant
 
 const (
-	LongitudeMin  float64 = 117.7737
-	LongitudeMax  float64 = 118.63037
-	LatitudeMin   float64 = 24.08784
-	LatitudeMax   float64 = 24.691
-	BigShipLength int     = 100
+	LongitudeMin     float64 = 117.7737
+	LongitudeMax     float64 = 118.63037
+	LatitudeMin      float64 = 24.08784
+	LatitudeMax      float64 = 24.691
+	BigShipLength    int     = 100
+	HalfNauticalMile float64 = 926
+	NauticalMile     float64 = 1852
 )
 
 type ShipMeta struct {
@@ -247,6 +249,7 @@ type CulSpacingResponse struct {
 	BPosition    *Position
 	SpacingMap   map[int]float64
 	SpacingRange []int
+	ShipSpacing  map[int]map[int]float64
 }
 
 type CulMeetingRequest struct {
