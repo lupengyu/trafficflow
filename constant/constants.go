@@ -259,5 +259,4 @@ type CulMeetingRequest struct {
 }
 
 type CulMeetingResponse struct {
-
 }

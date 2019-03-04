@@ -240,7 +240,7 @@ func culMeeting() {
 				Year:   2019,
 				Month:  1,
 				Day:    1,
-				Hour:   23,
+				Hour:   0,
 				Minute: 59,
 				Second: 0,
 			},
