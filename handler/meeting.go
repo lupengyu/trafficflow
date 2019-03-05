@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/lupengyu/trafficflow/client/sql"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/helper"
@@ -18,9 +17,9 @@ type unitFuncValue struct {
 
 type syncSafe struct {
 	sync.Mutex
-	nowIndex       int
-	shipMeetingMap map[int]map[int]string
-	meetingIndex   int
+	nowIndex        int
+	shipMeetingList map[int]map[int]int
+	shipMeetingNum  map[int]int
 }
 
 /*
@@ -33,25 +32,23 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 	defer ants.Release()
 
 	// 数据初始化
+	resp := &constant.CulMeetingResponse{
+		SimpleMeeting:  0,
+		ComplexMeeting: 0,
+	}
 	nowTime := request.StartTime
 	var wg sync.WaitGroup
 	total := helper.TimeDeviation(request.EndTime, nowTime)
 	now := helper.TimeDeviation(nowTime, request.StartTime)
 	syncValue := syncSafe{
-		nowIndex:     0,
-		meetingIndex: 0,
+		nowIndex: 0,
 	}
 	shipList, _ := sql.GetShip()
-	syncValue.shipMeetingMap = make(map[int]map[int]string)
+	syncValue.shipMeetingList = make(map[int]map[int]int)
+	syncValue.shipMeetingNum = make(map[int]int)
 	for _, v := range shipList {
-		syncValue.shipMeetingMap[v.MMSI] = make(map[int]string)
-		for _, v2 := range shipList {
-			syncValue.shipMeetingMap[v.MMSI][v2.MMSI] = ""
-		}
-	}
-	// init file cache
-	if meetingFileCache {
-
+		syncValue.shipMeetingList[v.MMSI] = make(map[int]int)
+		syncValue.shipMeetingNum[v.MMSI] = 0
 	}
 
 	/*
@@ -76,6 +73,47 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 			time.Sleep(time.Millisecond)
 		}
 		syncValue.Lock()
+		/*
+			4 船舶距离小于0.5海里
+			5 船舶距离大于等于0.5海里小于1海里
+			6 船舶距离大于1海里
+			9 无两船舶数据
+			ship meeting ship value
+				"" 	   无会遇
+				"1, 3" 与1,3会遇
+		*/
+		for k1, v1 := range response.ShipSpacing {
+			// main: k1
+			newMeetingShipNum := 0
+			meetingShipNum := syncValue.shipMeetingNum[k1]
+			for k2, v2 := range v1 {
+				if k1 != k2 {
+					if v2 < constant.HalfNauticalMile {
+						// 如果之前没有会遇
+						if syncValue.shipMeetingList[k1][k2] == 0 {
+							syncValue.shipMeetingList[k1][k2] = 1
+							newMeetingShipNum += 1
+							meetingShipNum += 1
+						}
+					} else if v2 > constant.NauticalMile {
+						// 如果之前有会遇
+						if syncValue.shipMeetingList[k1][k2] == 1 {
+							syncValue.shipMeetingList[k1][k2] = 0
+							meetingShipNum -= 1
+						}
+					} else {
+						//船舶间距在0.5海里与1海里之前，不做处理
+					}
+				}
+			}
+			// 会遇数据汇总
+			if meetingShipNum == 1 && newMeetingShipNum == 1 {
+				resp.SimpleMeeting += 1
+			} else if meetingShipNum > 1 && newMeetingShipNum > 0 {
+				resp.ComplexMeeting += 1
+			}
+			syncValue.shipMeetingNum[k1] = meetingShipNum
+		}
 		// 输出当前同步状态
 		spend := helper.TimeDeviation(nowTime, request.StartTime)
 		if spend > now {
@@ -84,48 +122,7 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 			log.Println("Progress:", percent, "%", value.index)
 		}
 		syncValue.nowIndex += 1
-		syncValue.meetingIndex += 1
-
-		/*
-			flag value
-				4 船舶距离小于0.5海里
-				5 船舶距离大于等于0.5海里小于1海里
-				6 船舶距离大于1海里
-				9 无两船舶数据
-		*/
-		for k1, v1 := range response.ShipSpacing {
-			for k2, v2 := range v1 {
-				flag := ""
-				if v2 < constant.HalfNauticalMile {
-					// 判断是否小于0.5 nmi
-					flag = "4"
-				} else if v2 > constant.NauticalMile {
-					// 判断是否大于1 nmi
-					flag = "6"
-				} else {
-					// 其他情况
-					flag = "5"
-				}
-				syncValue.shipMeetingMap[k1][k2] += flag
-				syncValue.shipMeetingMap[k2][k1] += flag
-			}
-		}
-		meetingIndex := syncValue.meetingIndex
-		for k1, v1 := range syncValue.shipMeetingMap {
-			for k2, v2 := range v1 {
-				if len(v2) != meetingIndex {
-					syncValue.shipMeetingMap[k1][k2] += "9"
-					syncValue.shipMeetingMap[k2][k1] += "9"
-				}
-			}
-		}
-		// flush cache
-		if meetingFileCache {
-
-		}
 		syncValue.Unlock()
-		// 无需同步语句
-		response.MinSpacing = 0.0
 	})
 
 	// 多协程调用
@@ -144,9 +141,6 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 	}
 	wg.Wait()
 
-	// Test
-	fmt.Println("shipMeetingMap[413788252][413484720]:", syncValue.shipMeetingMap[413788252][413484720])
-
 	// 输出结果
-	return &constant.CulMeetingResponse{}, nil
+	return resp, nil
 }

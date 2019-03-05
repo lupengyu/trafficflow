@@ -262,4 +262,6 @@ type CulMeetingRequest struct {
 }
 
 type CulMeetingResponse struct {
+	SimpleMeeting  int
+	ComplexMeeting int
 }
