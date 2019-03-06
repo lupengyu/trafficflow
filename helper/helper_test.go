@@ -3,6 +3,7 @@ package helper
 import (
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/stretchr/testify/assert"
+	"math"
 	"testing"
 )
 
@@ -128,4 +129,38 @@ func Test_PositionSpacing(t *testing.T) {
 		Longitude: 118.330451,
 		Latitude:  24.388639,
 	}))
+	a := PositionSpacing(&constant.Position{
+		Longitude: 0,
+		Latitude:  0,
+	}, &constant.Position{
+		Longitude: 1,
+		Latitude:  0,
+	})
+	b := PositionSpacing(&constant.Position{
+		Longitude: 0,
+		Latitude:  0,
+	}, &constant.Position{
+		Longitude: 0,
+		Latitude:  1,
+	})
+	c := PositionSpacing(&constant.Position{
+		Longitude: 0,
+		Latitude:  0,
+	}, &constant.Position{
+		Longitude: 1,
+		Latitude:  1,
+	})
+	t.Log(a, b, c)
+	t.Log(math.Sqrt(a*a + b*b))
+}
+
+func Test_InEllipse(t *testing.T) {
+	assert.True(t, InEllipse(5, 2.5, 0, 0, 0, 5, 0))
+	assert.False(t, InEllipse(5, 2.5, 0, 0, 0, 6, 0))
+	assert.True(t, InEllipse(5, 2.5, 0, 0, 2.5, 0, 0))
+	assert.True(t, InEllipse(5, 2.5, 1, 0, 0, 5, 0))
+	assert.False(t, InEllipse(5, 2.5, 1, 0, 2.5, 0, 0))
+	assert.True(t, InEllipse(5, 2.5, 0, 0, 3.535, 3.535, 45))
+	assert.False(t, InEllipse(5, 2.5, 0, 0, 3.635, 3.635, 45))
+	assert.True(t, InEllipse(5, 2.5, 1, 0, 4.242, 4.242, 45))
 }

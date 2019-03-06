@@ -25,7 +25,11 @@ type syncSafe struct {
 /*
 	计算会遇
 	TODO:
-		1.加入文件缓存减缓内存占用
+		1.加入文件缓存减缓内存占用(×, 代码优化在每轮数据后计算，优化了时间空间复杂度，不需要添加文件缓存)
+		2.判断位置是否在船舶领域中
+		3.判断会遇中会遇点在船舶领域中的情况
+		4.计算会遇中的危险会遇(介入会遇船只的船舶领域)
+		5.计算会遇中的规避情况(即原先会出现危险会遇但是经过规避避免了危险会遇)
 */
 func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeetingResponse, err error) {
 	// 协程池方案
