@@ -109,10 +109,7 @@ func DayIncrease(data *constant.Data, delta *constant.Data) *constant.Data {
 		return false
 */
 func DayBigger(a *constant.Data, b *constant.Data) bool {
-	if TimeDeviation(a, b) >= 0 {
-		return true
-	}
-	return false
+	return TimeDeviation(a, b) >= 0
 }
 
 func SliceSum(slice []int) int {
@@ -204,8 +201,5 @@ func InEllipse(a float64, b float64, S float64, T float64, x float64, y float64,
 	sin := math.Sin(math.Pi * angle / 180)
 	cos := math.Cos(math.Pi * angle / 180)
 	cul := math.Pow(x*sin+y*cos-S, 2)/math.Pow(a, 2) + math.Pow(x*cos-y*sin-T, 2)/math.Pow(b, 2)
-	if cul <= 1 {
-		return true
-	}
-	return false
+	return cul <= 1
 }
