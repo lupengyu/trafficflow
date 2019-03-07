@@ -26,16 +26,10 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 	}()
 
 	// 数据初始化
-	TrackMap := make(map[int]*constant.Track)
+	trackMap := make(map[int]*constant.Track)
 	shipTrackList := make(map[int][]*constant.Track)
 
-	//index := 0
 	for rows.Next() {
-		//// 计数显示
-		//if index%10000 == 0 {
-		//	log.Println(index)
-		//}
-		//index += 1
 		// 数据绑定
 		var pos constant.PositionMeta
 		err := rows.Scan(
@@ -64,22 +58,15 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 			PrePosition: nowPosition,
 			Time:        nowTime,
 			Deviation:   helper.TimeDeviation(nowTime, request.Time),
+			COG:         pos.COG,
 		})
 	}
-	//log.Println("Rows:", index)
-
-	//for _, v := range shipTrackList[371436000] {
-	//	fmt.Println(v.PrePosition, "-", v.Time)
-	//}
-	//TrackMap[371436000] = helper.TrackDifference(shipTrackList[371436000])
-	//fmt.Println(TrackMap[371436000].PrePosition)
-	//return nil, nil
 
 	shipSpacing := make(map[int]map[int]float64)
 
 	spacing := make(map[int]float64)
 	for k, v := range shipTrackList {
-		TrackMap[k] = helper.TrackDifference(v)
+		trackMap[k] = helper.TrackDifference(v)
 		spacing[k] = 9999999999
 	}
 
@@ -89,11 +76,11 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 	aPosition := &constant.Position{}
 	bPosition := &constant.Position{}
 
-	size := len(TrackMap)
+	size := len(trackMap)
 	tracks := make([]*constant.Track, size)
 	shipIDs := make([]int, size)
 	index := 0
-	for k, v := range TrackMap {
+	for k, v := range trackMap {
 		shipSpacing[k] = make(map[int]float64)
 		tracks[index] = v
 		shipIDs[index] = k
@@ -125,30 +112,6 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 		}
 	}
 
-	// 废弃TrackMap遍历
-	//for k1, v1 := range TrackMap {
-	//	shipSpacing[k1] = make(map[int]float64)
-	//	for k2, v2 := range TrackMap {
-	//		if k1 != k2 {
-	//			nowSpacing := helper.PositionSpacing(v1.PrePosition, v2.PrePosition)
-	//			shipSpacing[k1][k2] = nowSpacing
-	//			if nowSpacing < spacing[k1] {
-	//				spacing[k1] = nowSpacing
-	//			}
-	//			if nowSpacing < spacing[k2] {
-	//				spacing[k2] = nowSpacing
-	//			}
-	//			if nowSpacing < minSpacing {
-	//				minSpacing = nowSpacing
-	//				minSpaceA = k1
-	//				minSpaceB = k2
-	//				aPosition = v1.PrePosition
-	//				bPosition = v2.PrePosition
-	//			}
-	//		}
-	//	}
-	//}
-
 	spacingRange := make([]int, 3)
 	for _, v := range spacing {
 		if v < 50 {
@@ -170,5 +133,6 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 		SpacingMap:   spacing,
 		SpacingRange: spacingRange,
 		ShipSpacing:  shipSpacing,
+		TrackMap:     trackMap,
 	}, nil
 }

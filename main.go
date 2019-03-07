@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/lupengyu/trafficflow/constant"
+	"github.com/lupengyu/trafficflow/dal/cache"
 	"github.com/lupengyu/trafficflow/dal/mysql"
 	"github.com/lupengyu/trafficflow/handler"
 	"github.com/lupengyu/trafficflow/helper"
@@ -240,7 +241,7 @@ func culMeeting() {
 				Year:   2019,
 				Month:  1,
 				Day:    1,
-				Hour:   23,
+				Hour:   0,
 				Minute: 59,
 				Second: 0,
 			},
@@ -275,6 +276,7 @@ func culMeeting() {
 
 func main() {
 	mysql.InitMysql()
+	cache.InitCache()
 	//culTraffic()
 	//culDensity()
 	//culSpeed()

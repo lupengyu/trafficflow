@@ -222,6 +222,7 @@ type Track struct {
 	DeWeightDoorLine bool
 	Time             *Data
 	Deviation        int64
+	COG              float64
 }
 
 type CulDoorLineRequest struct {
@@ -250,6 +251,7 @@ type CulSpacingResponse struct {
 	SpacingMap   map[int]float64
 	SpacingRange []int
 	ShipSpacing  map[int]map[int]float64
+	TrackMap     map[int]*Track
 }
 
 type CulMeetingRequest struct {
@@ -262,6 +264,8 @@ type CulMeetingRequest struct {
 }
 
 type CulMeetingResponse struct {
-	SimpleMeeting  int
-	ComplexMeeting int
+	SimpleMeeting        int
+	ComplexMeeting       int
+	SimpleDamageMeeting  int
+	ComplexDamageMeeting int
 }

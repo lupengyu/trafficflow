@@ -3,9 +3,9 @@ package handler
 import (
 	"github.com/lupengyu/trafficflow/client/sql"
 	"github.com/lupengyu/trafficflow/constant"
+	"github.com/lupengyu/trafficflow/dal/cache"
 	"github.com/lupengyu/trafficflow/helper"
 	"log"
-	"strconv"
 )
 
 /*
@@ -27,7 +27,6 @@ func CulDensity(request *constant.CulDensityRequest) (response *constant.CulDens
 	}()
 
 	// 数据初始化
-	infoMetas := make(map[int]*constant.InfoMeta)
 	shipMap := make(map[int]int)
 	shipDensity := 0
 	smallShipMap := make(map[int]int)
@@ -91,21 +90,7 @@ func CulDensity(request *constant.CulDensityRequest) (response *constant.CulDens
 			continue
 		}
 
-		shipInfo := infoMetas[pos.MMSI]
-		if shipInfo == nil {
-			item, err := sql.GetInfoFirstWithShipID(strconv.Itoa(pos.MMSI))
-			if err != nil {
-				log.Println(err)
-				miss += 1
-				shipInfo = &constant.InfoMeta{ShipType: -1}
-			} else {
-				if item.ShipType == -1 {
-					miss += 1
-				}
-				infoMetas[pos.MMSI] = &item
-				shipInfo = &item
-			}
-		}
+		shipInfo := cache.GetShipInfo(pos.MMSI)
 
 		// shipMap记录
 		if shipMap[pos.MMSI] == 0 {

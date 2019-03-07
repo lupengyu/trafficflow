@@ -3,9 +3,9 @@ package handler
 import (
 	"github.com/lupengyu/trafficflow/client/sql"
 	"github.com/lupengyu/trafficflow/constant"
+	"github.com/lupengyu/trafficflow/dal/cache"
 	"github.com/lupengyu/trafficflow/helper"
 	"log"
-	"strconv"
 )
 
 /*
@@ -110,8 +110,6 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 		}
 	}
 
-	infoMetas := make(map[int]*constant.InfoMeta)
-
 	// 数据循环遍历计算
 	index := 0
 	miss := 0
@@ -155,21 +153,7 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 		}
 
 		// 获取船舶船体数据
-		shipInfo := infoMetas[pos.MMSI]
-		if shipInfo == nil {
-			item, err := sql.GetInfoFirstWithShipID(strconv.Itoa(pos.MMSI))
-			if err != nil {
-				log.Println(err)
-				miss += 1
-				shipInfo = &constant.InfoMeta{ShipType: -1}
-			} else {
-				if item.ShipType == -1 {
-					miss += 1
-				}
-				infoMetas[pos.MMSI] = &item
-				shipInfo = &item
-			}
-		}
+		shipInfo := cache.GetShipInfo(pos.MMSI)
 
 		/*
 			判断日期有没有刷新

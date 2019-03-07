@@ -187,6 +187,8 @@ func CulSpacingResponsePrint(response *constant.CulSpacingResponse) {
 }
 
 func CulMeetingResponsePrint(response *constant.CulMeetingResponse) {
-	fmt.Println("SimpleMeeting :", response.SimpleMeeting)
-	fmt.Println("ComplexMeeting:", response.ComplexMeeting)
+	fmt.Println("SimpleMeeting       :", response.SimpleMeeting)
+	fmt.Println("ComplexMeeting      :", response.ComplexMeeting)
+	fmt.Println("SimpleDamageMeeting :", response.SimpleDamageMeeting)
+	fmt.Println("ComplexDamageMeeting:", response.ComplexDamageMeeting)
 }

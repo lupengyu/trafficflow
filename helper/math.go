@@ -153,6 +153,7 @@ func TrackDifference(tracks []*constant.Track) *constant.Track {
 	} else if len(tracks) == 1 {
 		return &constant.Track{
 			PrePosition: tracks[0].PrePosition,
+			COG:         tracks[0].COG,
 		}
 	} else {
 		// track1(low) - track2(height)
@@ -161,6 +162,7 @@ func TrackDifference(tracks []*constant.Track) *constant.Track {
 			if track.Deviation == 0 {
 				return &constant.Track{
 					PrePosition: tracks[0].PrePosition,
+					COG:         tracks[0].COG,
 				}
 			}
 		}
@@ -184,15 +186,18 @@ func TrackDifference(tracks []*constant.Track) *constant.Track {
 		if diff == 0 {
 			return &constant.Track{
 				PrePosition: track1.PrePosition,
+				COG:         track1.COG,
 			}
 		}
 		longitudeK := (track1.PrePosition.Longitude - track2.PrePosition.Longitude) / float64(diff)
 		latitudeK := (track1.PrePosition.Latitude - track2.PrePosition.Latitude) / float64(diff)
+		cogK := (track1.COG - track2.COG) / float64(diff)
 		return &constant.Track{
 			PrePosition: &constant.Position{
 				Longitude: track1.PrePosition.Longitude - float64(track1.Deviation)*longitudeK,
 				Latitude:  track1.PrePosition.Latitude - float64(track1.Deviation)*latitudeK,
 			},
+			COG: track1.COG - float64(track1.Deviation)*cogK,
 		}
 	}
 }
