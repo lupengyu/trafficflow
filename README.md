@@ -66,8 +66,8 @@
 │      constants.go  
 │  
 │--dal 驱动  
-│  │--mysql mysql-for-go驱动   
-│          drive.go  驱动程序  
+│  │--mysql mysql-for-go驱动  
+│  │      drive.go  驱动程序  
 │  │--cache 程序缓存  
 │          drive.go  驱动程序  
 │          shipinfo.go  
