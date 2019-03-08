@@ -86,23 +86,19 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 			time.Sleep(time.Millisecond)
 		}
 		syncValue.Lock()
-		/*
-			4 船舶距离小于0.5海里
-			5 船舶距离大于等于0.5海里小于1海里
-			6 船舶距离大于1海里
-			9 无两船舶数据
-			ship meeting ship value
-				"" 	   无会遇
-				"1, 3" 与1,3会遇
-		*/
+		// 遍历判断
 		for k1, v1 := range response.ShipSpacing {
 			// main: k1 主船: k1
 			newMeetingShipNum := 0
 			meetingShipNum := syncValue.shipMeetingNum[k1]
 			newDamageMeetingShipNum := 0
 			damageMeetingShipNum := syncValue.shipDamageMeetingNum[k1]
+			ship1 := response.TrackMap[k1]
+			shipInfo := cache.GetShipInfo(k1)
+			COG := ship1.COG
 			for k2, v2 := range v1 {
 				if k1 != k2 {
+					// 会遇计算
 					if v2 < constant.HalfNauticalMile {
 						// 如果之前没有会遇
 						if syncValue.shipMeetingList[k1][k2] == 0 {
@@ -111,7 +107,7 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 							meetingShipNum += 1
 						}
 						// 计算危险会遇
-						shipInfo := cache.GetShipInfo(k1)
+						ship2 := response.TrackMap[k2]
 						if shipInfo.A != 511 && shipInfo.B != 511 &&
 							shipInfo.A != 0 && shipInfo.B != 0 {
 							L := float64(shipInfo.A + shipInfo.B)
@@ -122,26 +118,25 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 								S := 0.75 * L
 								T := 1.1 * L
 								x := helper.PositionSpacing(&constant.Position{
-									Longitude: response.TrackMap[k2].PrePosition.Longitude,
-									Latitude:  response.TrackMap[k1].PrePosition.Latitude,
+									Longitude: ship2.PrePosition.Longitude,
+									Latitude:  ship1.PrePosition.Latitude,
 								}, &constant.Position{
-									Longitude: response.TrackMap[k1].PrePosition.Longitude,
-									Latitude:  response.TrackMap[k1].PrePosition.Latitude,
+									Longitude: ship1.PrePosition.Longitude,
+									Latitude:  ship1.PrePosition.Latitude,
 								})
-								if response.TrackMap[k2].PrePosition.Longitude < response.TrackMap[k1].PrePosition.Longitude {
+								if ship2.PrePosition.Longitude < ship1.PrePosition.Longitude {
 									x *= -1
 								}
 								y := helper.PositionSpacing(&constant.Position{
-									Longitude: response.TrackMap[k1].PrePosition.Longitude,
-									Latitude:  response.TrackMap[k2].PrePosition.Latitude,
+									Longitude: ship1.PrePosition.Longitude,
+									Latitude:  ship2.PrePosition.Latitude,
 								}, &constant.Position{
-									Longitude: response.TrackMap[k1].PrePosition.Longitude,
-									Latitude:  response.TrackMap[k1].PrePosition.Latitude,
+									Longitude: ship1.PrePosition.Longitude,
+									Latitude:  ship1.PrePosition.Latitude,
 								})
-								if response.TrackMap[k2].PrePosition.Latitude < response.TrackMap[k1].PrePosition.Latitude {
+								if ship2.PrePosition.Latitude < ship1.PrePosition.Latitude {
 									y *= -1
 								}
-								COG := response.TrackMap[k1].COG
 								// 危险接触
 								if COG <= 360 && helper.InEllipse(a, b, S, T, x, y, COG) {
 									// 如果之前没有会遇
@@ -150,7 +145,15 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 										newDamageMeetingShipNum += 1
 										damageMeetingShipNum += 1
 									}
+									// TODO: 如果之前预测会遇点即在内部, 规避失败
 								}
+							}
+						}
+						// 会遇点计算, 抛出已经进入船舶领域的情况
+						if syncValue.shipDamageMeetingList[k1][k2] == 0 {
+							if ship1.SOG != ship2.SOG {
+								// TODO: 航向不平行, 计算船舶会遇点
+
 							}
 						}
 					} else if v2 > constant.NauticalMile {
@@ -158,6 +161,7 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 						if syncValue.shipMeetingList[k1][k2] == 1 {
 							syncValue.shipMeetingList[k1][k2] = 0
 							meetingShipNum -= 1
+							// TODO: 如果之前预测会遇点在船舶领域内部, 规避成功
 						}
 						// 接触脱离, 如果之前有危险会遇
 						if syncValue.shipDamageMeetingList[k1][k2] == 1 {

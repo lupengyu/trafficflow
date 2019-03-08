@@ -59,6 +59,7 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 			Time:        nowTime,
 			Deviation:   helper.TimeDeviation(nowTime, request.Time),
 			COG:         pos.COG,
+			SOG:         pos.SOG,
 		})
 	}
 
@@ -66,7 +67,7 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 
 	spacing := make(map[int]float64)
 	for k, v := range shipTrackList {
-		trackMap[k] = helper.TrackDifference(v)
+		trackMap[k] = helper.TrackInterpolation(v)
 		spacing[k] = 9999999999
 	}
 

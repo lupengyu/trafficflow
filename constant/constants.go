@@ -223,6 +223,7 @@ type Track struct {
 	Time             *Data
 	Deviation        int64
 	COG              float64
+	SOG              float64
 }
 
 type CulDoorLineRequest struct {
