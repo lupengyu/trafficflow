@@ -89,20 +89,26 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 		// 遍历判断
 		for k1, v1 := range response.ShipSpacing {
 			// main: k1 主船: k1
+			ship1 := response.TrackMap[k1]
+			// 静态船舶剔除
+			if ship1.SOG < constant.StaticShip {
+				continue
+			}
 			newMeetingShipNum := 0
 			meetingShipNum := syncValue.shipMeetingNum[k1]
 			newDamageMeetingShipNum := 0
 			damageMeetingShipNum := syncValue.shipDamageMeetingNum[k1]
-			ship1 := response.TrackMap[k1]
 			shipInfo := cache.GetShipInfo(k1)
 			COG := ship1.COG
-			if ship1.SOG < constant.StaticShip {
-				continue
-			}
 			for k2, v2 := range v1 {
 				if k1 != k2 {
 					// 会遇计算
 					if v2 < constant.HalfNauticalMile {
+						// 静态船舶剔除
+						ship2 := response.TrackMap[k2]
+						if ship2.SOG < constant.StaticShip {
+							continue
+						}
 						// 如果之前没有会遇
 						if syncValue.shipMeetingList[k1][k2] == 0 {
 							syncValue.shipMeetingList[k1][k2] = 1
@@ -110,10 +116,6 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 							meetingShipNum += 1
 						}
 						// 计算危险会遇
-						ship2 := response.TrackMap[k2]
-						if ship2.SOG < constant.StaticShip {
-							continue
-						}
 						if shipInfo.A != 511 && shipInfo.B != 511 &&
 							shipInfo.A != 0 && shipInfo.B != 0 {
 							L := float64(shipInfo.A + shipInfo.B)
