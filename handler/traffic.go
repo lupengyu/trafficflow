@@ -21,9 +21,6 @@ import (
 			船舶大小：
 				小型船:	length < 100m
 				大型船:	length >= 100m
-	TODO:
-		分析港口中辅助船只的类型并加入统计分析
-		加入船只重复率的概念，分析重复航道与纯过路航道(ok)
 */
 func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTrafficResponse, err error) {
 	// 查询时间段内的数据

@@ -8,6 +8,7 @@ const (
 	BigShipLength    int     = 100
 	HalfNauticalMile float64 = 926
 	NauticalMile     float64 = 1852
+	StaticShip       float64 = 0.03
 )
 
 type ShipMeta struct {
@@ -265,10 +266,12 @@ type CulMeetingRequest struct {
 }
 
 type CulMeetingResponse struct {
-	SimpleMeeting        int
-	ComplexMeeting       int
-	SimpleDamageMeeting  int
-	ComplexDamageMeeting int
+	SimpleMeeting         int
+	ComplexMeeting        int
+	SimpleDamageMeeting   int
+	ComplexDamageMeeting  int
+	ForecastDamageMeeting int
+	DamageMeetingAvoid    int
 }
 
 type MeetingIntersection struct {
