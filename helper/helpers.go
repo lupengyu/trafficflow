@@ -195,3 +195,7 @@ func CulMeetingResponsePrint(response *constant.CulMeetingResponse) {
 	fmt.Println("DamageMeetingAvoid   :", response.DamageMeetingAvoid)
 	fmt.Println("EvasionRate          :", 100*float64(response.DamageMeetingAvoid)/float64(response.ForecastDamageMeeting))
 }
+
+func EarlyWarningResponsePrint(response *constant.EarlyWarningResponse) {
+
+}

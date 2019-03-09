@@ -261,8 +261,6 @@ type CulMeetingRequest struct {
 	EndTime   *Data
 	DeltaT    *Data
 	TimeRange *Data
-	LotDivide int
-	LatDivide int
 }
 
 type CulMeetingResponse struct {
@@ -277,4 +275,15 @@ type CulMeetingResponse struct {
 type MeetingIntersection struct {
 	DCPA float64 // 最近会遇距离
 	TCPA float64 // 最近会遇时间
+}
+
+type EarlyWarningRequest struct {
+	StartTime *Data
+	EndTime   *Data
+	DeltaT    *Data
+	TimeRange *Data
+	MMSI      int
+}
+
+type EarlyWarningResponse struct {
 }

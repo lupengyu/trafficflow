@@ -1,9 +1,13 @@
 package helper
 
 import (
+	"fmt"
 	"github.com/lupengyu/trafficflow/constant"
+	"github.com/lupengyu/trafficflow/dal/mysql"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"math"
+	"sort"
 	"testing"
 )
 
@@ -240,4 +244,98 @@ func Test_CulMeetingIntersection(t *testing.T) {
 	newFirst = CulSecondPointPosition(first, 10*resp.TCPA-100, 0)
 	newSecond = CulSecondPointPosition(second, 10*resp.TCPA-100, 350)
 	t.Log(PositionSpacing(newFirst, newSecond))
+}
+
+func Test_TrackSorter(t *testing.T) {
+	mysql.InitMysql()
+	Time := &constant.Data{
+		Year:   2019,
+		Month:  1,
+		Day:    1,
+		Hour:   0,
+		Minute: 0,
+		Second: 0,
+	}
+	DeltaT := &constant.Data{
+		Year:   0,
+		Month:  0,
+		Day:    0,
+		Hour:   0,
+		Minute: 1,
+		Second: 0,
+	}
+	beginTime := DayDecrease(Time, DeltaT)
+	endTime := DayIncrease(Time, DeltaT)
+	rows, err := mysql.DB.Query(
+		"select * from position where MMSI = ? and (year > ? or year = ? and (month > ? or month = ? and (day > ? or day = ? and (hour > ? or hour = ? and (minute > ? or minute = ? and second >= ?))))) and (year < ? or year = ? and (month < ? or month = ? and (day < ? or day = ? and (hour < ? or hour = ? and (minute < ? or minute = ? and second <= ?))))) order by id",
+		413694190,
+		beginTime.Year, beginTime.Year,
+		beginTime.Month, beginTime.Month,
+		beginTime.Day, beginTime.Day,
+		beginTime.Hour, beginTime.Hour,
+		beginTime.Minute, beginTime.Minute,
+		beginTime.Second,
+		endTime.Year, endTime.Year,
+		endTime.Month, endTime.Month,
+		endTime.Day, endTime.Day,
+		endTime.Hour, endTime.Hour,
+		endTime.Minute, endTime.Minute,
+		endTime.Second,
+	)
+	if err != nil {
+		return
+	}
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+	shipTrackList := make([]*constant.Track, 0)
+	for rows.Next() {
+		// 数据绑定
+		var pos constant.PositionMeta
+		err := rows.Scan(
+			&pos.ID, &pos.MessageType, &pos.RepeatIndicator, &pos.MMSI, &pos.NavigationStatus, &pos.ROT, &pos.SOG,
+			&pos.PositionAccuracy, &pos.Longitude, &pos.Latitude, &pos.COG, &pos.HDG, &pos.TimeStamp, &pos.ReservedForRegional,
+			&pos.RAIMFlag, &pos.Year, &pos.Month, &pos.Day, &pos.Hour, &pos.Minute, &pos.Second,
+		)
+		if err != nil {
+			return
+		}
+		fmt.Println(pos)
+		// 判断船舶位置
+		nowPosition := &constant.Position{
+			Longitude: pos.Longitude,
+			Latitude:  pos.Latitude,
+		}
+		nowTime := &constant.Data{
+			Year:   pos.Year,
+			Month:  pos.Month,
+			Day:    pos.Day,
+			Hour:   pos.Hour,
+			Minute: pos.Minute,
+			Second: pos.Second,
+		}
+		track := &constant.Track{
+			PrePosition: nowPosition,
+			Time:        nowTime,
+			Deviation:   TimeDeviation(nowTime, Time),
+			COG:         pos.COG,
+			SOG:         pos.SOG,
+		}
+		fmt.Println(track)
+		shipTrackList = append(shipTrackList, track)
+	}
+	sorter := &TrackSorter{tracks: shipTrackList}
+	sort.Sort(sorter)
+	fmt.Println("====================")
+	for _, v := range sorter.tracks {
+		fmt.Println(v)
+	}
+	fmt.Println("====================")
+	sorter.DeWeighting()
+	for _, v := range sorter.tracks {
+		fmt.Println(v)
+	}
 }

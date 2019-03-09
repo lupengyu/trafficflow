@@ -3,6 +3,7 @@ package helper
 import (
 	"github.com/lupengyu/trafficflow/constant"
 	"math"
+	"sort"
 	"time"
 )
 
@@ -147,71 +148,33 @@ func PositionSpacing(a *constant.Position, b *constant.Position) float64 {
 	return dist * radius * 1000
 }
 
-// TODO: (P3)优化插值算法
+// 插值算法
 func TrackInterpolation(tracks []*constant.Track) *constant.Track {
 	if len(tracks) == 0 {
 		return nil
 	} else if len(tracks) == 1 {
-		return &constant.Track{
-			PrePosition: tracks[0].PrePosition,
-			COG:         tracks[0].COG,
-			SOG:         tracks[0].SOG,
-		}
-	} else {
-		// track1(low) - track2(height)
-		for i := 0; i < len(tracks); i++ {
-			track := tracks[i]
-			if track.Deviation == 0 {
-				return &constant.Track{
-					PrePosition: tracks[0].PrePosition,
-					COG:         tracks[0].COG,
-					SOG:         tracks[0].SOG,
-				}
-			}
-		}
-		track1 := tracks[0]
-		track2 := tracks[0]
-		startI := 1
-		for ; startI < len(tracks); startI++ {
-			track2 = tracks[startI]
-			if track2.Deviation != track1.Deviation {
-				break
-			}
-		}
-		if math.Abs(float64(track2.Deviation)) < math.Abs(float64(track1.Deviation)) {
-			tmp := track1
-			track1 = track2
-			track2 = tmp
-		}
-		for ; startI < len(tracks); startI++ {
-			track := tracks[startI]
-			if math.Abs(float64(track.Deviation)) < math.Abs(float64(track1.Deviation)) {
-				track2 = track1
-				track1 = track
-			} else if math.Abs(float64(track.Deviation)) < math.Abs(float64(track2.Deviation)) && math.Abs(float64(track.Deviation)) != math.Abs(float64(track1.Deviation)) {
-				track2 = track
-			}
-		}
-		diff := track1.Deviation - track2.Deviation
-		if diff == 0 {
-			return &constant.Track{
-				PrePosition: track1.PrePosition,
-				COG:         track1.COG,
-				SOG:         track1.SOG,
-			}
-		}
-		longitudeK := (track1.PrePosition.Longitude - track2.PrePosition.Longitude) / float64(diff)
-		latitudeK := (track1.PrePosition.Latitude - track2.PrePosition.Latitude) / float64(diff)
-		cogK := (track1.COG - track2.COG) / float64(diff)
-		sogK := (track1.SOG - track2.SOG) / float64(diff)
-		return &constant.Track{
-			PrePosition: &constant.Position{
-				Longitude: track1.PrePosition.Longitude - float64(track1.Deviation)*longitudeK,
-				Latitude:  track1.PrePosition.Latitude - float64(track1.Deviation)*latitudeK,
-			},
-			COG: track1.COG - float64(track1.Deviation)*cogK,
-			SOG: track1.SOG - float64(track1.Deviation)*sogK,
-		}
+		return tracks[0]
+	}
+	sorter := &TrackSorter{tracks: tracks}
+	sort.Sort(sorter)
+	sorter.DeWeighting()
+	if sorter.Len() == 1 {
+		return sorter.tracks[0]
+	}
+	track1 := sorter.tracks[0]
+	track2 := sorter.tracks[1]
+	diff := track1.Deviation - track2.Deviation
+	longitudeK := (track1.PrePosition.Longitude - track2.PrePosition.Longitude) / float64(diff)
+	latitudeK := (track1.PrePosition.Latitude - track2.PrePosition.Latitude) / float64(diff)
+	cogK := (track1.COG - track2.COG) / float64(diff)
+	sogK := (track1.SOG - track2.SOG) / float64(diff)
+	return &constant.Track{
+		PrePosition: &constant.Position{
+			Longitude: track1.PrePosition.Longitude - float64(track1.Deviation)*longitudeK,
+			Latitude:  track1.PrePosition.Latitude - float64(track1.Deviation)*latitudeK,
+		},
+		COG: track1.COG - float64(track1.Deviation)*cogK,
+		SOG: track1.SOG - float64(track1.Deviation)*sogK,
 	}
 }
 

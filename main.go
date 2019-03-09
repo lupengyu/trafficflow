@@ -193,7 +193,7 @@ func culDoorLine() {
 }
 
 func culSpacing() {
-	t1 := time.Now()
+	startT := time.Now()
 	response, err := handler.CulSpacing(
 		&constant.CulSpacingRequest{
 			Time: &constant.Data{
@@ -218,15 +218,13 @@ func culSpacing() {
 		log.Println(err)
 		return
 	}
-	elapsed := time.Since(t1)
+	elapsed := time.Since(startT)
 	fmt.Println("App elapsed: ", elapsed)
 	helper.CulSpacingResponsePrint(response)
 }
 
 func culMeeting() {
-	lotDivide := 10
-	latDivide := 10
-	t1 := time.Now()
+	startT := time.Now()
 	response, err := handler.CulMeeting(
 		&constant.CulMeetingRequest{
 			StartTime: &constant.Data{
@@ -261,17 +259,61 @@ func culMeeting() {
 				Minute: 1,
 				Second: 0,
 			},
-			LotDivide: lotDivide,
-			LatDivide: latDivide,
 		},
 	)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	elapsed := time.Since(t1)
+	elapsed := time.Since(startT)
 	fmt.Println("App elapsed: ", elapsed)
 	helper.CulMeetingResponsePrint(response)
+}
+
+func earlyWarning() {
+	startT := time.Now()
+	response, err := handler.EarlyWarning(&constant.EarlyWarningRequest{
+		StartTime: &constant.Data{
+			Year:   2019,
+			Month:  1,
+			Day:    1,
+			Hour:   0,
+			Minute: 0,
+			Second: 0,
+		},
+		EndTime: &constant.Data{
+			Year:   2019,
+			Month:  1,
+			Day:    1,
+			Hour:   0,
+			Minute: 59,
+			Second: 0,
+		},
+		TimeRange: &constant.Data{
+			Year:   0,
+			Month:  0,
+			Day:    0,
+			Hour:   0,
+			Minute: 1,
+			Second: 0,
+		},
+		DeltaT: &constant.Data{
+			Year:   0,
+			Month:  0,
+			Day:    0,
+			Hour:   0,
+			Minute: 1,
+			Second: 0,
+		},
+		MMSI: 413694190,
+	})
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	elapsed := time.Since(startT)
+	fmt.Println("App elapsed: ", elapsed)
+	helper.EarlyWarningResponsePrint(response)
 }
 
 func main() {
@@ -283,4 +325,5 @@ func main() {
 	//culDoorLine()
 	//culSpacing()
 	culMeeting()
+	//earlyWarning()
 }
