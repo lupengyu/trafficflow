@@ -336,6 +336,22 @@ func Test_TrackSorter(t *testing.T) {
 	fmt.Println("====================")
 	sorter.DeWeighting()
 	for _, v := range sorter.tracks {
-		fmt.Println(v)
+		fmt.Println(v, v.PrePosition)
 	}
+	track1 := sorter.tracks[0]
+	track2 := sorter.tracks[1]
+	diff := track1.Deviation - track2.Deviation
+	longitudeK := (track1.PrePosition.Longitude - track2.PrePosition.Longitude) / float64(diff)
+	latitudeK := (track1.PrePosition.Latitude - track2.PrePosition.Latitude) / float64(diff)
+	cogK := (track1.COG - track2.COG) / float64(diff)
+	sogK := (track1.SOG - track2.SOG) / float64(diff)
+	a := constant.Track{
+		PrePosition: &constant.Position{
+			Longitude: track1.PrePosition.Longitude - float64(track1.Deviation)*longitudeK,
+			Latitude:  track1.PrePosition.Latitude - float64(track1.Deviation)*latitudeK,
+		},
+		COG: track1.COG - float64(track1.Deviation)*cogK,
+		SOG: track1.SOG - float64(track1.Deviation)*sogK,
+	}
+	fmt.Println(a, a.PrePosition)
 }
