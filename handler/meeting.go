@@ -151,9 +151,8 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 						}
 						// 会遇点计算, 抛出已经进入船舶领域的情况
 						if syncValue.shipDamageMeetingList[k1][k2] == 0 {
-							if ship1.SOG != ship2.SOG {
+							if ship1.COG != ship2.COG {
 								// TODO: 航向不平行, 计算船舶会遇点
-
 							}
 						}
 					} else if v2 > constant.NauticalMile {

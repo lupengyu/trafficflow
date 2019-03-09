@@ -147,6 +147,7 @@ func PositionSpacing(a *constant.Position, b *constant.Position) float64 {
 	return dist * radius * 1000
 }
 
+// TODO: 优化插值算法
 func TrackInterpolation(tracks []*constant.Track) *constant.Track {
 	if len(tracks) == 0 {
 		return nil
@@ -214,9 +215,78 @@ func TrackInterpolation(tracks []*constant.Track) *constant.Track {
 	}
 }
 
+func ArcSin(value float64) float64 {
+	return 180 * math.Asin(value) / math.Pi
+}
+
+func ArcCos(value float64) float64 {
+	return 180 * math.Acos(value) / math.Pi
+}
+
+func sin(angle float64) float64 {
+	return math.Sin(angle * math.Pi / 180)
+}
+
+func cos(angle float64) float64 {
+	return math.Cos(angle * math.Pi / 180)
+}
+
 func InEllipse(a float64, b float64, S float64, T float64, x float64, y float64, angle float64) bool {
-	sin := math.Sin(math.Pi * angle / 180)
-	cos := math.Cos(math.Pi * angle / 180)
+	sin := sin(angle)
+	cos := cos(angle)
 	cul := math.Pow(x*sin+y*cos-S, 2)/math.Pow(a, 2) + math.Pow(x*cos-y*sin-T, 2)/math.Pow(b, 2)
 	return cul <= 1
+}
+
+/*
+	求第二点相对第一点方向
+*/
+func PositionAzimuth(master *constant.Position, slave *constant.Position) float64 {
+	cosc := cos(90-slave.Latitude)*cos(90-master.Latitude) + sin(90-slave.Latitude)*sin(90-master.Latitude)*cos(slave.Longitude-master.Longitude)
+	sinc := math.Sqrt(1 - math.Pow(cosc, 2))
+	A := ArcSin((sin(90-slave.Latitude) * sin(slave.Longitude-master.Longitude)) / sinc)
+	if slave.Longitude >= master.Longitude && slave.Latitude >= master.Latitude {
+		return A
+	} else if slave.Longitude <= master.Longitude && slave.Latitude >= master.Latitude {
+		return 360 + A
+	} else {
+		return 180 - A
+	}
+}
+
+/*
+	求最近会遇距离与会遇时间(平面近似，有误差)
+*/
+func CulMeetingIntersection(master *constant.Track, slave *constant.Track) *constant.MeetingIntersection {
+	response := &constant.MeetingIntersection{}
+	V0 := master.SOG
+	C0 := master.COG
+	Vt := slave.SOG
+	Ct := slave.COG
+	D := PositionSpacing(master.PrePosition, slave.PrePosition)
+	q := PositionAzimuth(master.PrePosition, slave.PrePosition)
+	Vr := math.Sqrt(math.Pow(V0, 2) + math.Pow(Vt, 2) - 2*V0*Vt*cos(C0-Ct))
+	k := Vt / V0
+	dH := C0 - Ct
+	Cr := ArcCos((1 - k*cos(dH)) / (math.Sqrt(1 - 2*k*cos(dH) + math.Pow(k, 2))))
+	response.DCPA = D * sin(Cr-q)
+	response.TCPA = D * cos(Cr-q) / Vr
+	return response
+}
+
+/*
+	求第二点经纬度
+	first 第一点位置
+	L 距离
+	Azimuth 方位角
+*/
+func CulSecondPointPosition(first *constant.Position, L float64, Azimuth float64) *constant.Position {
+	var radius float64 = 6378137
+	c := L / radius * 180 / math.Pi
+	a := ArcCos(cos(90-first.Latitude)*cos(c) + sin(90-first.Latitude)*sin(c)*cos(Azimuth))
+	C := ArcSin((sin(c) * sin(Azimuth)) / sin(a))
+	return &constant.Position{
+		Latitude:  90 - a,
+		Longitude: first.Longitude + C,
+	}
 }

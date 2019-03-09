@@ -270,3 +270,8 @@ type CulMeetingResponse struct {
 	SimpleDamageMeeting  int
 	ComplexDamageMeeting int
 }
+
+type MeetingIntersection struct {
+	DCPA float64 // 最近会遇距离
+	TCPA float64 // 最近会遇时间
+}

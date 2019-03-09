@@ -85,7 +85,7 @@ func Test_IsLineInterSect(t *testing.T) {
 }
 
 func Test_TimeDeviation(t *testing.T) {
-	assert.EqualValues(t, 10, TimeDeviation(
+	assert.EqualValues(t, -10, TimeDeviation(
 		&constant.Data{
 			Year:   2019,
 			Month:  1,
@@ -163,4 +163,81 @@ func Test_InEllipse(t *testing.T) {
 	assert.True(t, InEllipse(5, 2.5, 0, 0, 3.535, 3.535, 45))
 	assert.False(t, InEllipse(5, 2.5, 0, 0, 3.635, 3.635, 45))
 	assert.True(t, InEllipse(5, 2.5, 1, 0, 4.242, 4.242, 45))
+}
+
+func Test_PositionAzimuth(t *testing.T) {
+	assert.EqualValues(t, 51.82921409234056, PositionAzimuth(&constant.Position{
+		Longitude: 116.403119,
+		Latitude:  39.913385,
+	}, &constant.Position{
+		Longitude: 116.581918,
+		Latitude:  40.020885,
+	}))
+	assert.EqualValues(t, 307.5677865347654, PositionAzimuth(&constant.Position{
+		Longitude: 116.403119,
+		Latitude:  39.913385,
+	}, &constant.Position{
+		Longitude: 116.203048,
+		Latitude:  40.031051,
+	}))
+	assert.EqualValues(t, 121.06169999543708, PositionAzimuth(&constant.Position{
+		Longitude: 116.403119,
+		Latitude:  39.913385,
+	}, &constant.Position{
+		Longitude: 116.654357,
+		Latitude:  39.796846,
+	}))
+	assert.EqualValues(t, 246.07882841128884, PositionAzimuth(&constant.Position{
+		Longitude: 116.403119,
+		Latitude:  39.913385,
+	}, &constant.Position{
+		Longitude: 116.180052,
+		Latitude:  39.837192,
+	}))
+}
+
+func Test_CulSecondPointPosition(t *testing.T) {
+	first := &constant.Position{
+		Longitude: 116.403119,
+		Latitude:  39.913385,
+	}
+	second := &constant.Position{
+		Longitude: 116.581918,
+		Latitude:  40.020885,
+	}
+	D := PositionSpacing(first, second)
+	q := PositionAzimuth(first, second)
+	culSecond := CulSecondPointPosition(first, D, q)
+	t.Log(second, culSecond)
+}
+
+func Test_CulMeetingIntersection(t *testing.T) {
+	first := &constant.Position{
+		Longitude: 116.403119,
+		Latitude:  39.913385,
+	}
+	second := &constant.Position{
+		Longitude: 116.581918,
+		Latitude:  40.020885,
+	}
+	t.Log(PositionSpacing(first, second))
+	resp := CulMeetingIntersection(&constant.Track{
+		PrePosition: first,
+		COG:         0,
+		SOG:         10,
+	}, &constant.Track{
+		PrePosition: second,
+		COG:         350,
+		SOG:         10,
+	})
+	t.Log(resp)
+	newFirst := CulSecondPointPosition(first, 10*resp.TCPA, 0)
+	newSecond := CulSecondPointPosition(second, 10*resp.TCPA, 350)
+	t.Log(PositionSpacing(newFirst, newSecond))
+	newFirst = CulSecondPointPosition(first, 10*resp.TCPA+100, 0)
+	newSecond = CulSecondPointPosition(second, 10*resp.TCPA+100, 350)
+	t.Log(PositionSpacing(newFirst, newSecond))
+	newFirst = CulSecondPointPosition(first, 10*resp.TCPA-100, 0)
+	newSecond = CulSecondPointPosition(second, 10*resp.TCPA-100, 350)
+	t.Log(PositionSpacing(newFirst, newSecond))
 }
