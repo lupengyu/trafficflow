@@ -273,8 +273,9 @@ type CulMeetingResponse struct {
 }
 
 type MeetingIntersection struct {
-	DCPA float64 // 最近会遇距离
-	TCPA float64 // 最近会遇时间
+	DCPA    float64 // 最近会遇距离
+	TCPA    float64 // 最近会遇时间
+	Azimuth float64 // 会遇方向
 }
 
 type EarlyWarningRequest struct {
@@ -286,4 +287,20 @@ type EarlyWarningRequest struct {
 }
 
 type EarlyWarningResponse struct {
+	Warning []*Warning
+}
+
+type Alert struct {
+	MMSI                int
+	ShipTrack           *Track
+	IsEmergency         bool
+	Distance            float64
+	Azimuth             float64
+	MeetingIntersection *MeetingIntersection
+}
+
+type Warning struct {
+	MasterShipTrack *Track
+	Alerts          []*Alert
+	Time            *Data
 }

@@ -165,7 +165,7 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 									shipInfo.A != 0 && shipInfo.B != 0 {
 									L := float64(shipInfo.A + shipInfo.B)
 									// 初筛除
-									if meetingIntersection.DCPA <= 2*L {
+									if meetingIntersection.TCPA > 0 {
 										intersectionShip1Position := helper.CulSecondPointPosition(ship1.PrePosition, meetingIntersection.TCPA*ship1.SOG, ship1.COG)
 										intersectionShip2Position := helper.CulSecondPointPosition(ship2.PrePosition, meetingIntersection.TCPA*ship2.SOG, ship2.COG)
 										a := 5 * L

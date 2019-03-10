@@ -217,6 +217,52 @@ func Test_CulSecondPointPosition(t *testing.T) {
 
 func Test_CulMeetingIntersection(t *testing.T) {
 	first := &constant.Position{
+		Longitude: 118.06283333333334,
+		Latitude:  24.481209166666666,
+	}
+	second := &constant.Position{
+		Longitude: 118.06080466666667,
+		Latitude:  24.47756788888889,
+	}
+	sog1 := 9.05
+	sog2 := 6.786666666666667
+	cog1 := 34.400000000000006
+	cog2 := 13.88
+	t.Log(PositionSpacing(first, second))
+	resp := CulMeetingIntersection(&constant.Track{
+		PrePosition: first,
+		COG:         cog1,
+		SOG:         sog1,
+	}, &constant.Track{
+		PrePosition: second,
+		COG:         cog2,
+		SOG:         sog2,
+	})
+	t.Log(resp.TCPA, resp.DCPA)
+	newFirst := CulSecondPointPosition(first, sog1*resp.TCPA, cog1)
+	newSecond := CulSecondPointPosition(second, sog2*resp.TCPA, cog2)
+	t.Log(newFirst, newSecond)
+	t.Log(PositionSpacing(newFirst, newSecond))
+	newFirst = CulSecondPointPosition(first, 0.5*sog1*resp.TCPA, cog1)
+	newSecond = CulSecondPointPosition(second, 0.5*sog2*resp.TCPA, cog2)
+	t.Log(newFirst, newSecond)
+	t.Log(PositionSpacing(newFirst, newSecond))
+	newFirst = CulSecondPointPosition(first, -1*sog1*resp.TCPA, cog1)
+	newSecond = CulSecondPointPosition(second, -1*sog1*resp.TCPA, cog2)
+	t.Log(newFirst, newSecond)
+	t.Log(PositionSpacing(newFirst, newSecond))
+	newFirst = CulSecondPointPosition(first, 2*sog1*resp.TCPA, cog1)
+	newSecond = CulSecondPointPosition(second, 2*sog2*resp.TCPA, cog2)
+	t.Log(newFirst, newSecond)
+	t.Log(PositionSpacing(newFirst, newSecond))
+	newFirst = CulSecondPointPosition(first, 3*sog1*resp.TCPA, cog1)
+	newSecond = CulSecondPointPosition(second, 3*sog2*resp.TCPA, cog2)
+	t.Log(newFirst, newSecond)
+	t.Log(PositionSpacing(newFirst, newSecond))
+}
+
+func Test_CulMeetingIntersectionOld(t *testing.T) {
+	first := &constant.Position{
 		Longitude: 116.403119,
 		Latitude:  39.913385,
 	}
@@ -234,15 +280,18 @@ func Test_CulMeetingIntersection(t *testing.T) {
 		COG:         350,
 		SOG:         10,
 	})
-	t.Log(resp)
+	t.Log(resp.TCPA, resp.DCPA)
 	newFirst := CulSecondPointPosition(first, 10*resp.TCPA, 0)
 	newSecond := CulSecondPointPosition(second, 10*resp.TCPA, 350)
+	t.Log(newFirst, newSecond)
 	t.Log(PositionSpacing(newFirst, newSecond))
-	newFirst = CulSecondPointPosition(first, 10*resp.TCPA+100, 0)
-	newSecond = CulSecondPointPosition(second, 10*resp.TCPA+100, 350)
+	newFirst = CulSecondPointPosition(first, 20*resp.TCPA, 0)
+	newSecond = CulSecondPointPosition(second, 20*resp.TCPA, 350)
+	t.Log(newFirst, newSecond)
 	t.Log(PositionSpacing(newFirst, newSecond))
-	newFirst = CulSecondPointPosition(first, 10*resp.TCPA-100, 0)
-	newSecond = CulSecondPointPosition(second, 10*resp.TCPA-100, 350)
+	newFirst = CulSecondPointPosition(first, 30*resp.TCPA, 0)
+	newSecond = CulSecondPointPosition(second, 30*resp.TCPA, 350)
+	t.Log(newFirst, newSecond)
 	t.Log(PositionSpacing(newFirst, newSecond))
 }
 
