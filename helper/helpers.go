@@ -195,6 +195,14 @@ func CulMeetingResponsePrint(response *constant.CulMeetingResponse) {
 	fmt.Println("ForecastDamageMeeting:", response.ForecastDamageMeeting)
 	fmt.Println("DamageMeetingAvoid   :", response.DamageMeetingAvoid)
 	fmt.Println("EvasionRate          :", 100*float64(response.DamageMeetingAvoid)/float64(response.ForecastDamageMeeting))
+	for i := 0; i < 12; i++ {
+		start := i * 30
+		end := (i + 1) * 30
+		fmt.Printf("%3d° - %3d°: ForecastDamageMeeting: %8d, DamageMeetingAvoid: %8d, EvasionRate: %6.2f\n",
+			start, end, response.AngleForecastDamageMeeting[i], response.AngleDamageMeetingAvoid[i],
+			100*float64(response.AngleDamageMeetingAvoid[i])/float64(response.AngleForecastDamageMeeting[i]))
+	}
+	fmt.Println("Sum:", SliceSum(response.AngleForecastDamageMeeting), SliceSum(response.AngleDamageMeetingAvoid))
 }
 
 func DataFmt(data *constant.Data) string {

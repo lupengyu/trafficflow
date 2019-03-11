@@ -264,12 +264,14 @@ type CulMeetingRequest struct {
 }
 
 type CulMeetingResponse struct {
-	SimpleMeeting         int
-	ComplexMeeting        int
-	SimpleDamageMeeting   int
-	ComplexDamageMeeting  int
-	ForecastDamageMeeting int
-	DamageMeetingAvoid    int
+	SimpleMeeting              int
+	ComplexMeeting             int
+	SimpleDamageMeeting        int
+	ComplexDamageMeeting       int
+	ForecastDamageMeeting      int
+	DamageMeetingAvoid         int
+	AngleForecastDamageMeeting []int
+	AngleDamageMeetingAvoid    []int
 }
 
 type MeetingIntersection struct {

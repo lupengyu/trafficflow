@@ -404,3 +404,17 @@ func Test_TrackSorter(t *testing.T) {
 	}
 	fmt.Println(a, a.PrePosition)
 }
+
+func Test_PositionRelativeAzimuth(t *testing.T) {
+	first := &constant.Position{
+		Longitude: 118.0732,
+		Latitude:  24.504341114856814,
+	}
+	second := &constant.Position{
+		Longitude: 118.07406773809524,
+		Latitude:  24.504341112448856,
+	}
+	cog := 360.0
+	a := PositionRelativeAzimuth(first, cog, second)
+	fmt.Println(a)
+}

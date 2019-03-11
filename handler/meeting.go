@@ -29,8 +29,7 @@ type syncSafe struct {
 /*
 	计算会遇
 	TODO:
-		(P1)对规避行为的细化分析
-		(P2)会遇热力图展示
+		(P0)会遇热力图展示
 */
 func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeetingResponse, err error) {
 	// 协程池方案
@@ -42,6 +41,12 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 		ComplexMeeting:       0,
 		SimpleDamageMeeting:  0,
 		ComplexDamageMeeting: 0,
+	}
+	resp.AngleForecastDamageMeeting = make([]int, 12)
+	resp.AngleDamageMeetingAvoid = make([]int, 12)
+	for i := 0; i < 12; i++ {
+		resp.AngleForecastDamageMeeting[i] = 0
+		resp.AngleDamageMeetingAvoid[i] = 0
 	}
 	nowTime := request.StartTime
 	var wg sync.WaitGroup
@@ -196,8 +201,14 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 										if COG <= 360 && helper.InEllipse(a, b, S, T, x, y, COG) {
 											// 如果之前没有预测接触
 											if syncValue.shipForecastDamageMeetingList[k1][k2] == 0 {
-												syncValue.shipForecastDamageMeetingList[k1][k2] = 1
+												Azimuth := helper.PositionRelativeAzimuth(intersectionShip1Position, ship1.COG, intersectionShip2Position)
+												index := int(Azimuth / 30)
+												if index == 12 {
+													index = 0
+												}
+												syncValue.shipForecastDamageMeetingList[k1][k2] = 1 + index
 												resp.ForecastDamageMeeting += 1
+												resp.AngleForecastDamageMeeting[index] += 1
 											}
 										}
 									}
@@ -210,8 +221,9 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 							syncValue.shipMeetingList[k1][k2] = 0
 							meetingShipNum -= 1
 							// 如果之前预测会遇点在船舶领域内部, 规避成功
-							if syncValue.shipForecastDamageMeetingList[k1][k2] == 1 && syncValue.shipDamageMeetingList[k1][k2] == 0 {
+							if syncValue.shipForecastDamageMeetingList[k1][k2] != 0 && syncValue.shipDamageMeetingList[k1][k2] == 0 {
 								resp.DamageMeetingAvoid += 1
+								resp.AngleDamageMeetingAvoid[syncValue.shipForecastDamageMeetingList[k1][k2]-1] += 1
 							}
 							syncValue.shipForecastDamageMeetingList[k1][k2] = 0
 							// 接触脱离, 如果之前有危险会遇
