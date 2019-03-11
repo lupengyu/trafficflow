@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/dal/cache"
 	"github.com/lupengyu/trafficflow/helper"
@@ -18,8 +19,6 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 	defer ants.Release()
 	nowTime := request.StartTime
 	var wg sync.WaitGroup
-	total := helper.TimeDeviation(request.EndTime, nowTime)
-	now := helper.TimeDeviation(nowTime, request.StartTime)
 	syncValue := syncSafe{
 		nowIndex: 0,
 	}
@@ -65,7 +64,7 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 					ship2 := response.TrackMap[k]
 					if L != 0 {
 						// 船舶静态数据有效
-						if v <= 2*L {
+						if v <= 10*L {
 							a := 5 * L
 							b := 2.5 * L
 							S := 0.75 * L
@@ -97,7 +96,7 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 									IsEmergency: true,
 									ShipTrack:   ship2,
 									Distance:    v,
-									Azimuth:     helper.PositionAzimuth(ship1.PrePosition, ship2.PrePosition),
+									Azimuth:     helper.PositionRelativeAzimuth(ship1.PrePosition, ship1.COG, ship2.PrePosition),
 								})
 								continue
 							}
@@ -110,7 +109,7 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 							if meetingIntersection.TCPA > 0 {
 								intersectionShip1Position := helper.CulSecondPointPosition(ship1.PrePosition, meetingIntersection.TCPA*ship1.SOG, ship1.COG)
 								intersectionShip2Position := helper.CulSecondPointPosition(ship2.PrePosition, meetingIntersection.TCPA*ship2.SOG, ship2.COG)
-								meetingIntersection.Azimuth = helper.PositionAzimuth(intersectionShip1Position, intersectionShip2Position)
+								meetingIntersection.Azimuth = helper.PositionRelativeAzimuth(intersectionShip1Position, ship1.COG, intersectionShip2Position)
 								meetingIntersection.DCPA = helper.PositionSpacing(intersectionShip1Position, intersectionShip2Position)
 								a := 5 * L
 								b := 2.5 * L
@@ -144,7 +143,7 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 										IsEmergency:         false,
 										ShipTrack:           ship2,
 										Distance:            v,
-										Azimuth:             helper.PositionAzimuth(ship1.PrePosition, ship2.PrePosition),
+										Azimuth:             helper.PositionRelativeAzimuth(ship1.PrePosition, ship1.COG, ship2.PrePosition),
 										MeetingIntersection: meetingIntersection,
 									})
 									continue
@@ -157,20 +156,22 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 						IsEmergency: false,
 						ShipTrack:   ship2,
 						Distance:    v,
-						Azimuth:     helper.PositionAzimuth(ship1.PrePosition, ship2.PrePosition),
+						Azimuth:     helper.PositionRelativeAzimuth(ship1.PrePosition, ship1.COG, ship2.PrePosition),
 					})
 				}
 			}
 		}
-		if len(warning.Alerts) != 0 {
-			resp.Warning = append(resp.Warning, warning)
-		}
 		// 输出当前同步状态
-		spend := helper.TimeDeviation(nowTime, request.StartTime)
-		if spend > now {
-			now = spend
-			percent := float64(100.0*spend) / float64(total)
-			log.Println("Progress:", percent, "%", value.index)
+		fmt.Println("Time:", helper.DataFmt(nowTime))
+		for _, al := range warning.Alerts {
+			helper.AlertPrint(al)
+			if al.IsEmergency {
+				fmt.Print(" Emergency !!!: ship domain invaded")
+			} else if al.MeetingIntersection != nil {
+				fmt.Printf(" Emergency !!!: ship domain will be invaded, TCPA: %4.2fs, DCPA: %4.2fm, Relative Azimuth: %3.2f°",
+					al.MeetingIntersection.TCPA, al.MeetingIntersection.DCPA, al.MeetingIntersection.Azimuth)
+			}
+			fmt.Printf("\n")
 		}
 		syncValue.nowIndex += 1
 		syncValue.Unlock()

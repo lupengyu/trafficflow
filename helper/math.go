@@ -218,6 +218,18 @@ func PositionAzimuth(master *constant.Position, slave *constant.Position) float6
 }
 
 /*
+	求第二点相对第一点速度的方向
+*/
+func PositionRelativeAzimuth(master *constant.Position, masterAzimuth float64, slave *constant.Position) float64 {
+	azimuth := PositionAzimuth(master, slave)
+	relativeAzimuth := azimuth - masterAzimuth
+	if relativeAzimuth < 0 {
+		return relativeAzimuth + 360
+	}
+	return relativeAzimuth
+}
+
+/*
 	求最近会遇距离与会遇时间(平面近似，有误差)
 */
 func CulMeetingIntersection(master *constant.Track, slave *constant.Track) *constant.MeetingIntersection {

@@ -120,7 +120,7 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 							shipInfo.A != 0 && shipInfo.B != 0 {
 							L := float64(shipInfo.A + shipInfo.B)
 							// 初筛除
-							if v2 <= 2*L {
+							if v2 <= 10*L {
 								a := 5 * L
 								b := 2.5 * L
 								S := 0.75 * L

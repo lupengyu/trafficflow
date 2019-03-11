@@ -203,22 +203,9 @@ func DataFmt(data *constant.Data) string {
 }
 
 func AlertPrint(alert *constant.Alert) {
-	fmt.Printf("%8d: Distance: %6.2fm, Azimuth: %3.2f°, COG: %3.2f°, SOG: %3.2fnm/h",
+	fmt.Printf("%8d: Distance: %6.2fm, Relative Azimuth: %3.2f°, COG: %3.2f°, SOG: %3.2fnm/h",
 		alert.MMSI, alert.Distance, alert.Azimuth, alert.ShipTrack.COG, alert.ShipTrack.SOG)
 }
 
 func EarlyWarningResponsePrint(response *constant.EarlyWarningResponse) {
-	for _, v := range response.Warning {
-		fmt.Println("Time:", DataFmt(v.Time))
-		for _, v2 := range v.Alerts {
-			AlertPrint(v2)
-			if v2.IsEmergency {
-				fmt.Print(" Emergency !!!: ship domain invaded")
-			} else if v2.MeetingIntersection != nil {
-				fmt.Printf(" Emergency !!!: ship domain will be invaded, TCPA: %4.2fs, DCPA: %4.2fm, Azimuth: %3.2f°",
-					v2.MeetingIntersection.TCPA, v2.MeetingIntersection.DCPA, v2.MeetingIntersection.Azimuth)
-			}
-			fmt.Printf("\n")
-		}
-	}
 }
