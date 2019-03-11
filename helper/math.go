@@ -208,7 +208,7 @@ func PositionAzimuth(master *constant.Position, slave *constant.Position) float6
 	cosc := cos(90-slave.Latitude)*cos(90-master.Latitude) + sin(90-slave.Latitude)*sin(90-master.Latitude)*cos(slave.Longitude-master.Longitude)
 	sinc := math.Sqrt(1 - math.Pow(cosc, 2))
 	A := ArcSin((sin(90-slave.Latitude) * sin(slave.Longitude-master.Longitude)) / sinc)
-	if (sin(90-slave.Latitude) * sin(slave.Longitude-master.Longitude)) / sinc > 1 {
+	if (sin(90-slave.Latitude)*sin(slave.Longitude-master.Longitude))/sinc > 1 {
 		A = ArcSin(1)
 	}
 	if slave.Longitude >= master.Longitude && slave.Latitude >= master.Latitude {
