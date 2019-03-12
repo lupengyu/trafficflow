@@ -148,7 +148,11 @@ func PositionSpacing(a *constant.Position, b *constant.Position) float64 {
 	return dist * radius * 1000
 }
 
-// 插值算法
+/*
+	插值算法
+		TODO:
+			解决COG插值结果不合理的情况
+  */
 func TrackInterpolation(tracks []*constant.Track) *constant.Track {
 	if len(tracks) == 0 {
 		return nil

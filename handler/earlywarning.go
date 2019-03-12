@@ -53,15 +53,25 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 			time.Sleep(time.Millisecond)
 		}
 		syncValue.Lock()
+		fmt.Println("Time:", helper.DataFmt(nowTime))
 		ship1 := response.TrackMap[request.MMSI]
+		if ship1.COG > 360 || ship1.COG < 0 {
+			syncValue.nowIndex += 1
+			fmt.Println("ship", request.MMSI, "COG error")
+			syncValue.Unlock()
+			return
+		}
 		warning := &constant.Warning{
 			MasterShipTrack: ship1,
 			Time:            nowTime,
 		}
 		for k, v := range response.ShipSpacing[request.MMSI] {
 			if k != request.MMSI {
+				ship2 := response.TrackMap[k]
+				if ship2.COG > 360 || ship2.COG < 0 {
+					continue
+				}
 				if v < constant.HalfNauticalMile {
-					ship2 := response.TrackMap[k]
 					if L != 0 {
 						// 船舶静态数据有效
 						if v <= 10*L {
@@ -162,7 +172,6 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 			}
 		}
 		// 输出当前同步状态
-		fmt.Println("Time:", helper.DataFmt(nowTime))
 		for _, al := range warning.Alerts {
 			helper.AlertPrint(al)
 			if al.IsEmergency {

@@ -105,12 +105,18 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 			damageMeetingShipNum := syncValue.shipDamageMeetingNum[k1]
 			shipInfo := cache.GetShipInfo(k1)
 			COG := ship1.COG
+			if COG > 360 || COG < 0 {
+				continue
+			}
 			for k2, v2 := range v1 {
 				if k1 != k2 {
 					// 会遇计算
+					ship2 := response.TrackMap[k2]
+					if ship2.COG > 360 || ship2.COG < 0 {
+						continue
+					}
 					if v2 < constant.HalfNauticalMile {
 						// 静态船舶剔除
-						ship2 := response.TrackMap[k2]
 						if ship2.SOG < constant.StaticShip {
 							continue
 						}
