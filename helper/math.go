@@ -206,6 +206,57 @@ func InEllipse(a float64, b float64, S float64, T float64, x float64, y float64,
 }
 
 /*
+	椭圆上一点到(-S, -T)的距离
+*/
+func EllipseR(a float64, b float64, S float64, T float64, angle float64) float64 {
+	x0 := -S
+	y0 := -T
+	x := 0.0
+	y := 0.0
+	if angle == 0 || angle == 360 {
+		x = -S
+		y = math.Sqrt((math.Pow(a, 2)) * (1 - (math.Pow(x, 2) / math.Pow(b, 2))))
+		return y + T
+	} else if angle == 180 {
+		x = -S
+		y = math.Sqrt((math.Pow(a, 2)) * (1 - (math.Pow(x, 2) / math.Pow(b, 2))))
+		return y - T
+	} else if angle == 90 {
+		y = -T
+		x = math.Sqrt((math.Pow(b, 2)) * (1 - (math.Pow(y, 2) / math.Pow(a, 2))))
+		return x + S
+	} else if angle == 270 {
+		y = -T
+		x = math.Sqrt((math.Pow(b, 2)) * (1 - (math.Pow(y, 2) / math.Pow(a, 2))))
+		return x - S
+	} else if angle < 180 {
+		k := cos(angle) / sin(angle)
+		A := math.Pow(k, 2) + math.Pow(a, 2)/math.Pow(b, 2)
+		B := 2 * k * (k*S - T)
+		C := math.Pow(k*S, 2) - 2*k*T*S + math.Pow(T, 2) - math.Pow(a, 2)
+		x = (-B + math.Sqrt(math.Pow(B, 2)-4*A*C)) / (2 * A)
+		if angle <= 90 {
+			y = math.Sqrt((math.Pow(a, 2)) * (1 - (math.Pow(x, 2) / math.Pow(b, 2))))
+		} else {
+			y = -math.Sqrt((math.Pow(a, 2)) * (1 - (math.Pow(x, 2) / math.Pow(b, 2))))
+		}
+	} else {
+		k := cos(angle) / sin(angle)
+		A := math.Pow(k, 2) + math.Pow(a, 2)/math.Pow(b, 2)
+		B := 2 * k * (k*S - T)
+		C := math.Pow(k*S, 2) - 2*k*T*S + math.Pow(T, 2) - math.Pow(a, 2)
+		x = (-B + math.Sqrt(math.Pow(B, 2)-4*A*C)) / (2 * A)
+		if angle > 270 {
+			y = math.Sqrt((math.Pow(a, 2)) * (1 - (math.Pow(x, 2) / math.Pow(b, 2))))
+		} else {
+			y = -math.Sqrt((math.Pow(a, 2)) * (1 - (math.Pow(x, 2) / math.Pow(b, 2))))
+		}
+	}
+	length := math.Sqrt(math.Pow(x-x0, 2) + math.Pow(y-y0, 2))
+	return length
+}
+
+/*
 	求第二点相对第一点方向
 */
 func PositionAzimuth(master *constant.Position, slave *constant.Position) float64 {
@@ -253,6 +304,7 @@ func CulMeetingIntersection(master *constant.Track, slave *constant.Track) *cons
 	Cr := ArcCos((1 - k*cos(dH)) / (math.Sqrt(1 - 2*k*cos(dH) + math.Pow(k, 2))))
 	response.DCPA = D * sin(Cr-q)
 	response.TCPA = D * cos(Cr-q) / Vr
+	response.VR = Vr
 	return response
 }
 
@@ -271,4 +323,85 @@ func CulSecondPointPosition(first *constant.Position, L float64, Azimuth float64
 		Latitude:  90 - a,
 		Longitude: first.Longitude + C,
 	}
+}
+
+func PositionRelativeVector(v0 float64, RelativeAzimuth float64, vt float64) float64 {
+	vx := v0 - vt*cos(RelativeAzimuth)
+	vy := vt * sin(RelativeAzimuth)
+	return math.Sqrt(math.Pow(vx, 2) + math.Pow(vy, 2))
+}
+
+func BoundaryR(angle float64) float64 {
+	return constant.NauticalMile*1.7*cos(angle-19) + math.Sqrt(4.4+2.89*math.Pow(cos(angle-19), 2))
+}
+
+func MeetingDangerUDCPA(a float64, b float64, S float64, T float64, angle float64, DCPA float64) float64 {
+	min := EllipseR(a, b, S, T, angle)
+	max := constant.NauticalMile
+	if DCPA < min {
+		return 1.0
+	} else if DCPA > max {
+		return 0.0
+	}
+	return 0.5 - math.Sin(math.Pi*(DCPA-(min+max)/2)/(max-min))/2.0
+}
+
+func MeetingDangerUTCPA(a float64, b float64, S float64, T float64, angle float64, DCPA float64, TCPA float64, Vr float64) float64 {
+	//min := EllipseR(a, b, S, T, angle)
+	//max := constant.NauticalMile
+	max := BoundaryR(angle)
+	min := 12 * a / 5
+	t1 := (DCPA - min) / Vr
+	if min >= DCPA {
+		t1 = math.Sqrt(math.Pow(min, 2)-math.Pow(DCPA, 2)) / Vr
+	}
+	t2 := math.Sqrt(math.Pow(max, 2)-math.Pow(DCPA, 2)) / Vr
+	//fmt.Println(t1, t2, TCPA)
+	if DCPA > max {
+		return 0.0
+	}
+	if TCPA <= t1 {
+		return 1.0
+	} else if TCPA > t2 {
+		return 0.0
+	}
+	return math.Pow((t2-TCPA)/(t2-t1), 2)
+}
+
+func MeetingDangerUB(angle float64) float64 {
+	return (cos(angle-19)+math.Sqrt(440.0/289.0+math.Pow(cos(angle-19), 2)))/2.0 - 5.0/17.0
+}
+
+func MeetingDangerUD(a float64, b float64, S float64, T float64, angle float64, D float64) float64 {
+	max := BoundaryR(angle)
+	min := EllipseR(a, b, S, T, angle)
+	if D <= min {
+		return 1.0
+	} else if D > max {
+		return 0.0
+	}
+	return math.Pow((max-D)/(max-min), 2)
+}
+
+func MeetingDangerUT(v0 float64, vt float64, T float64) float64 {
+	T0 := 90.0
+	if v0 > vt {
+		T0 = 180.0
+	} else if v0 < vt {
+		T0 = 40.0
+	}
+	if T == 360 {
+		T = 0
+	}
+	if T >= 0 && T < 180 {
+		return 1.0 / (1.0 + math.Pow(T/T0, 2))
+	} else if T >= 180 && T < 360 {
+		return 1.0 / math.Pow((360.0-T)/T0, 2)
+	} else {
+		return 0.0
+	}
+}
+
+func MeetingDanger(d float64, T float64, DCPA float64, TCPA float64) float64 {
+	return 0.0
 }

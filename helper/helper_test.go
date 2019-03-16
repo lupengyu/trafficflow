@@ -418,3 +418,30 @@ func Test_PositionRelativeAzimuth(t *testing.T) {
 	a := PositionRelativeAzimuth(first, cog, second)
 	fmt.Println(a)
 }
+
+func Test_EllipseR(t *testing.T) {
+	t.Log(EllipseR(5, 2.5, 0, 1, 0))
+	t.Log(EllipseR(5, 2.5, 0, 1, 90))
+	t.Log(EllipseR(5, 2.5, 0, 1, 180))
+	t.Log(EllipseR(5, 2.5, 0, 1, 270))
+	t.Log(EllipseR(5, 2.5, 0, 0, 45))
+	t.Log(EllipseR(5, 2.5, 0, 0, 135))
+	t.Log(EllipseR(5, 2.5, 0, 0, 225))
+	t.Log(EllipseR(5, 2.5, 0, 0, 315))
+}
+
+func Test_PositionRelativeAzimuthVector(t *testing.T) {
+	t.Log(PositionRelativeVector(1, 0, 2))
+	t.Log(PositionRelativeVector(1, 180, 2))
+	t.Log(PositionRelativeVector(3, 90, 4))
+}
+
+func Test_Danger(t *testing.T) {
+	//cog0 := 0
+	//sog0 := 15
+	//L := 75
+	//Azimuth := 29.5
+	//D := 3 * constant.NauticalMile
+	//DCPA := 0.4 * constant.NauticalMile
+	//TCPA := 7
+}

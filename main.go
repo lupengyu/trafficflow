@@ -324,6 +324,6 @@ func main() {
 	//culSpeed()
 	//culDoorLine()
 	//culSpacing()
-	culMeeting()
-	//earlyWarning()
+	//culMeeting()
+	earlyWarning()
 }

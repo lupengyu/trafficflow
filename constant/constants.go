@@ -278,6 +278,7 @@ type MeetingIntersection struct {
 	DCPA    float64 // 最近会遇距离
 	TCPA    float64 // 最近会遇时间
 	Azimuth float64 // 会遇方向
+	VR      float64 // 相对速度
 }
 
 type EarlyWarningRequest struct {
@@ -299,6 +300,11 @@ type Alert struct {
 	Distance            float64              // 相对距离
 	Azimuth             float64              // 相对方位
 	MeetingIntersection *MeetingIntersection // 危险会遇预测数据
+	UDCPA               float64              // DCPA预警值
+	UTCPA               float64              // TCPA预警值
+	UB                  float64              // 相对角度预警值
+	UD                  float64              // 相对距离预警
+	Danger              float64              // 预警评分
 }
 
 type Warning struct {

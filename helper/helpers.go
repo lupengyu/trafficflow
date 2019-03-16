@@ -211,8 +211,8 @@ func DataFmt(data *constant.Data) string {
 }
 
 func AlertPrint(alert *constant.Alert) {
-	fmt.Printf("%8d: Distance: %6.2fm, Relative Azimuth: %3.2f°, COG: %3.2f°, SOG: %3.2fnm/h",
-		alert.MMSI, alert.Distance, alert.Azimuth, alert.ShipTrack.COG, alert.ShipTrack.SOG)
+	fmt.Printf("%8d: Distance: %6.2fm, Relative Azimuth: %3.2f°, COG: %3.2f°, SOG: %3.2fnm/h, UDCPA: %.4f, UTCPA: %.4f, UB: %.4f, UD: %.4f, Danger: %.4f",
+		alert.MMSI, alert.Distance, alert.Azimuth, alert.ShipTrack.COG, alert.ShipTrack.SOG, alert.UDCPA, alert.UTCPA, alert.UB, alert.UD, alert.Danger)
 }
 
 func EarlyWarningResponsePrint(response *constant.EarlyWarningResponse) {
