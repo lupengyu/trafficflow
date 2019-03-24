@@ -383,6 +383,17 @@ func MeetingDangerUD(a float64, b float64, S float64, T float64, angle float64, 
 	return math.Pow((max-D)/(max-min), 2)
 }
 
+func MeetingDangerUV(v float64) float64 {
+	min := constant.StaticShip
+	max := 9.973
+	if v < min {
+		return 0
+	} else if v > max {
+		return 1
+	}
+	return math.Pow((v-min)/(max-min), 2)
+}
+
 func MeetingDangerUT(v0 float64, vt float64, T float64) float64 {
 	T0 := 90.0
 	if v0 > vt {
@@ -400,8 +411,4 @@ func MeetingDangerUT(v0 float64, vt float64, T float64) float64 {
 	} else {
 		return 0.0
 	}
-}
-
-func MeetingDanger(d float64, T float64, DCPA float64, TCPA float64) float64 {
-	return 0.0
 }

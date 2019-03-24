@@ -28,8 +28,6 @@ type syncSafe struct {
 
 /*
 	计算会遇
-	TODO:
-		(P0)会遇热力图展示
 */
 func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeetingResponse, err error) {
 	// 协程池方案

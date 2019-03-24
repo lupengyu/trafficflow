@@ -445,3 +445,19 @@ func Test_Danger(t *testing.T) {
 	//DCPA := 0.4 * constant.NauticalMile
 	//TCPA := 7
 }
+
+func Test_DangerUV(t *testing.T) {
+	t.Log(MeetingDangerUV(0.01))
+	t.Log(MeetingDangerUV(0.03))
+	t.Log(MeetingDangerUV(1))
+	t.Log(MeetingDangerUV(2))
+	t.Log(MeetingDangerUV(3))
+	t.Log(MeetingDangerUV(4))
+	t.Log(MeetingDangerUV(5))
+	t.Log(MeetingDangerUV(6))
+	t.Log(MeetingDangerUV(7))
+	t.Log(MeetingDangerUV(8))
+	t.Log(MeetingDangerUV(9))
+	t.Log(MeetingDangerUV(10))
+	t.Log(MeetingDangerUV(9.05))
+}
