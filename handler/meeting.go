@@ -1,12 +1,14 @@
 package handler
 
 import (
-	"github.com/lupengyu/trafficflow/client/sql"
+	"bufio"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/dal/cache"
 	"github.com/lupengyu/trafficflow/helper"
 	"github.com/panjf2000/ants"
 	"log"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -34,6 +36,48 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 	defer ants.Release()
 
 	// 数据初始化
+	danger1, err := os.Create("data/danger1.txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	danger2, err := os.Create("data/danger2.txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	danger3, err := os.Create("data/danger3.txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	danger4, err := os.Create("data/danger4.txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	danger5, err := os.Create("data/danger5.txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer func() {
+		danger1.Close()
+		danger2.Close()
+		danger3.Close()
+		danger4.Close()
+		danger5.Close()
+	}()
+	danger1.Sync()
+	danger2.Sync()
+	danger3.Sync()
+	danger4.Sync()
+	danger5.Sync()
+	danger1Writer := bufio.NewWriter(danger1)
+	danger2Writer := bufio.NewWriter(danger2)
+	danger3Writer := bufio.NewWriter(danger3)
+	danger4Writer := bufio.NewWriter(danger4)
+	danger5Writer := bufio.NewWriter(danger5)
 	resp := &constant.CulMeetingResponse{
 		SimpleMeeting:        0,
 		ComplexMeeting:       0,
@@ -52,19 +96,6 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 	now := helper.TimeDeviation(nowTime, request.StartTime)
 	syncValue := syncSafe{
 		nowIndex: 0,
-	}
-	shipList, _ := sql.GetShip()
-	syncValue.shipMeetingList = make(map[int]map[int]int)
-	syncValue.shipMeetingNum = make(map[int]int)
-	syncValue.shipDamageMeetingList = make(map[int]map[int]int)
-	syncValue.shipDamageMeetingNum = make(map[int]int)
-	syncValue.shipForecastDamageMeetingList = make(map[int]map[int]int)
-	for _, v := range shipList {
-		syncValue.shipMeetingList[v.MMSI] = make(map[int]int)
-		syncValue.shipMeetingNum[v.MMSI] = 0
-		syncValue.shipDamageMeetingList[v.MMSI] = make(map[int]int)
-		syncValue.shipDamageMeetingNum[v.MMSI] = 0
-		syncValue.shipForecastDamageMeetingList[v.MMSI] = make(map[int]int)
 	}
 
 	/*
@@ -93,168 +124,108 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 		for k1, v1 := range response.ShipSpacing {
 			// main: k1 主船: k1
 			ship1 := response.TrackMap[k1]
-			// 静态船舶剔除
-			if ship1.SOG < constant.StaticShip {
+			shipInfo := cache.GetShipInfo(k1)
+			L := 0.0
+			if shipInfo.A != 511 && shipInfo.B != 511 &&
+				shipInfo.A != 0 && shipInfo.B != 0 {
+				L = float64(shipInfo.A + shipInfo.B)
+			} else {
 				continue
 			}
-			newMeetingShipNum := 0
-			meetingShipNum := syncValue.shipMeetingNum[k1]
-			newDamageMeetingShipNum := 0
-			damageMeetingShipNum := syncValue.shipDamageMeetingNum[k1]
-			shipInfo := cache.GetShipInfo(k1)
 			COG := ship1.COG
 			if COG > 360 || COG < 0 {
 				continue
 			}
+			I := 0
+			II := 0
+			III := 0
+			IV := 0
+			V := 0
 			for k2, v2 := range v1 {
 				if k1 != k2 {
-					// 会遇计算
 					ship2 := response.TrackMap[k2]
 					if ship2.COG > 360 || ship2.COG < 0 {
 						continue
 					}
-					if v2 < constant.HalfNauticalMile {
-						// 静态船舶剔除
-						if ship2.SOG < constant.StaticShip {
-							continue
+					azimuth := helper.PositionRelativeAzimuth(ship1.PrePosition, ship1.COG, ship2.PrePosition)
+					uDCPA := 0.0
+					uTCPA := 0.0
+					uB := helper.MeetingDangerUB(azimuth)
+					uD := 0.0
+					uV := helper.MeetingDangerUV(ship1.SOG)
+					if ship1.COG != ship2.COG {
+						meetingIntersection := helper.CulMeetingIntersection(ship1, ship2)
+						if meetingIntersection.TCPA > 0 {
+							intersectionShip1Position := helper.CulSecondPointPosition(ship1.PrePosition, meetingIntersection.TCPA*ship1.SOG, ship1.COG)
+							intersectionShip2Position := helper.CulSecondPointPosition(ship2.PrePosition, meetingIntersection.TCPA*ship2.SOG, ship2.COG)
+							meetingIntersection.Azimuth = helper.PositionRelativeAzimuth(intersectionShip1Position, ship1.COG, intersectionShip2Position)
+							meetingIntersection.DCPA = helper.PositionSpacing(intersectionShip1Position, intersectionShip2Position)
+							a := 5 * L
+							b := 2.5 * L
+							S := 0.75 * L
+							T := 1.1 * L
+							//fmt.Println(meetingIntersection.DCPA, meetingIntersection.TCPA)
+							uDCPA = helper.MeetingDangerUDCPA(a, b, S, T, meetingIntersection.Azimuth, meetingIntersection.DCPA)
+							uTCPA = helper.MeetingDangerUTCPA(a, b, S, T, azimuth, meetingIntersection.DCPA,
+								meetingIntersection.TCPA, meetingIntersection.VR)
+							uD = helper.MeetingDangerUD(a, b, S, T, azimuth, v2)
 						}
-						// 如果之前没有会遇
-						if syncValue.shipMeetingList[k1][k2] == 0 {
-							syncValue.shipMeetingList[k1][k2] = 1
-							newMeetingShipNum += 1
-							meetingShipNum += 1
-						}
-						// 计算危险会遇
-						if shipInfo.A != 511 && shipInfo.B != 511 &&
-							shipInfo.A != 0 && shipInfo.B != 0 {
-							L := float64(shipInfo.A + shipInfo.B)
-							// 初筛除
-							if v2 <= 10*L {
-								a := 5 * L
-								b := 2.5 * L
-								S := 0.75 * L
-								T := 1.1 * L
-								x := helper.PositionSpacing(&constant.Position{
-									Longitude: ship2.PrePosition.Longitude,
-									Latitude:  ship1.PrePosition.Latitude,
-								}, &constant.Position{
-									Longitude: ship1.PrePosition.Longitude,
-									Latitude:  ship1.PrePosition.Latitude,
-								})
-								if ship2.PrePosition.Longitude < ship1.PrePosition.Longitude {
-									x *= -1
-								}
-								y := helper.PositionSpacing(&constant.Position{
-									Longitude: ship1.PrePosition.Longitude,
-									Latitude:  ship2.PrePosition.Latitude,
-								}, &constant.Position{
-									Longitude: ship1.PrePosition.Longitude,
-									Latitude:  ship1.PrePosition.Latitude,
-								})
-								if ship2.PrePosition.Latitude < ship1.PrePosition.Latitude {
-									y *= -1
-								}
-								// 危险接触
-								if COG <= 360 && helper.InEllipse(a, b, S, T, x, y, COG) {
-									// 如果之前没有会遇
-									if syncValue.shipDamageMeetingList[k1][k2] == 0 {
-										syncValue.shipDamageMeetingList[k1][k2] = 1
-										newDamageMeetingShipNum += 1
-										damageMeetingShipNum += 1
-									}
-								}
-							}
-						}
-						// 会遇点计算, 抛出已经进入船舶领域的情况
-						if syncValue.shipDamageMeetingList[k1][k2] == 0 {
-							if ship1.COG != ship2.COG {
-								// 航向不平行, 计算船舶会遇点
-								meetingIntersection := helper.CulMeetingIntersection(ship1, ship2)
-								if shipInfo.A != 511 && shipInfo.B != 511 &&
-									shipInfo.A != 0 && shipInfo.B != 0 {
-									L := float64(shipInfo.A + shipInfo.B)
-									// 初筛除
-									if meetingIntersection.TCPA > 0 {
-										intersectionShip1Position := helper.CulSecondPointPosition(ship1.PrePosition, meetingIntersection.TCPA*ship1.SOG, ship1.COG)
-										intersectionShip2Position := helper.CulSecondPointPosition(ship2.PrePosition, meetingIntersection.TCPA*ship2.SOG, ship2.COG)
-										a := 5 * L
-										b := 2.5 * L
-										S := 0.75 * L
-										T := 1.1 * L
-										x := helper.PositionSpacing(&constant.Position{
-											Longitude: intersectionShip2Position.Longitude,
-											Latitude:  intersectionShip1Position.Latitude,
-										}, &constant.Position{
-											Longitude: intersectionShip1Position.Longitude,
-											Latitude:  intersectionShip1Position.Latitude,
-										})
-										if intersectionShip2Position.Longitude < intersectionShip1Position.Longitude {
-											x *= -1
-										}
-										y := helper.PositionSpacing(&constant.Position{
-											Longitude: intersectionShip1Position.Longitude,
-											Latitude:  intersectionShip2Position.Latitude,
-										}, &constant.Position{
-											Longitude: intersectionShip1Position.Longitude,
-											Latitude:  intersectionShip1Position.Latitude,
-										})
-										if intersectionShip2Position.Latitude < intersectionShip1Position.Latitude {
-											y *= -1
-										}
-										// 预测危险接触
-										if COG <= 360 && helper.InEllipse(a, b, S, T, x, y, COG) {
-											// 如果之前没有预测接触
-											if syncValue.shipForecastDamageMeetingList[k1][k2] == 0 {
-												Azimuth := helper.PositionRelativeAzimuth(intersectionShip1Position, ship1.COG, intersectionShip2Position)
-												index := int(Azimuth / 30)
-												if index == 12 {
-													index = 0
-												}
-												syncValue.shipForecastDamageMeetingList[k1][k2] = 1 + index
-												resp.ForecastDamageMeeting += 1
-												resp.AngleForecastDamageMeeting[index] += 1
-											}
-										}
-									}
-								}
-							}
-						}
-					} else if v2 > constant.NauticalMile {
-						// 接触脱离, 如果之前有会遇
-						if syncValue.shipMeetingList[k1][k2] == 1 {
-							syncValue.shipMeetingList[k1][k2] = 0
-							meetingShipNum -= 1
-							// 如果之前预测会遇点在船舶领域内部, 规避成功
-							if syncValue.shipForecastDamageMeetingList[k1][k2] != 0 && syncValue.shipDamageMeetingList[k1][k2] == 0 {
-								resp.DamageMeetingAvoid += 1
-								resp.AngleDamageMeetingAvoid[syncValue.shipForecastDamageMeetingList[k1][k2]-1] += 1
-							}
-							syncValue.shipForecastDamageMeetingList[k1][k2] = 0
-							// 接触脱离, 如果之前有危险会遇
-							if syncValue.shipDamageMeetingList[k1][k2] == 1 {
-								syncValue.shipDamageMeetingList[k1][k2] = 0
-								damageMeetingShipNum -= 1
-							}
-						}
-					} else {
-						//船舶间距在0.5海里与1海里之前，不做处理
+					}
+					danger := uD*0.4 + uDCPA*0.25 + uTCPA*0.15 + uB*0.1 + uV*0.1
+					if danger <= 0.2 {
+						I += 1
+					} else if danger <= 0.4 {
+						II += 1
+					} else if danger <= 0.6 {
+						III += 1
+					} else if danger <= 0.8 {
+						IV += 1
+					} else if danger <= 1.0 {
+						V += 1
 					}
 				}
 			}
-			// 会遇数据汇总
-			if meetingShipNum == 1 && newMeetingShipNum == 1 {
-				resp.SimpleMeeting += 1
-			} else if meetingShipNum > 1 && newMeetingShipNum > 0 {
-				resp.ComplexMeeting += 1
+			// 文件输出
+			if I != 0 {
+				str := strconv.FormatFloat(ship1.PrePosition.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(ship1.PrePosition.Latitude, 'f', -1, 64) + "," + strconv.Itoa(I) + "\r\n"
+				n, err := danger1Writer.WriteString(str)
+				if n != len(str) && err != nil {
+					log.Println(err)
+				}
+				danger1Writer.Flush()
 			}
-			syncValue.shipMeetingNum[k1] = meetingShipNum
-			// 危险会遇数据汇总
-			if damageMeetingShipNum == 1 && newDamageMeetingShipNum == 1 {
-				resp.SimpleDamageMeeting += 1
-			} else if damageMeetingShipNum > 1 && newDamageMeetingShipNum > 0 {
-				resp.ComplexDamageMeeting += 1
+			if II != 0 {
+				str := strconv.FormatFloat(ship1.PrePosition.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(ship1.PrePosition.Latitude, 'f', -1, 64) + "," + strconv.Itoa(II) + "\r\n"
+				n, err := danger2Writer.WriteString(str)
+				if n != len(str) && err != nil {
+					log.Println(err)
+				}
+				danger2Writer.Flush()
 			}
-			syncValue.shipDamageMeetingNum[k1] = damageMeetingShipNum
+			if III != 0 {
+				str := strconv.FormatFloat(ship1.PrePosition.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(ship1.PrePosition.Latitude, 'f', -1, 64) + "," + strconv.Itoa(III) + "\r\n"
+				n, err := danger3Writer.WriteString(str)
+				if n != len(str) && err != nil {
+					log.Println(err)
+				}
+				danger3Writer.Flush()
+			}
+			if IV != 0 {
+				str := strconv.FormatFloat(ship1.PrePosition.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(ship1.PrePosition.Latitude, 'f', -1, 64) + "," + strconv.Itoa(IV) + "\r\n"
+				n, err := danger4Writer.WriteString(str)
+				if n != len(str) && err != nil {
+					log.Println(err)
+				}
+				danger4Writer.Flush()
+			}
+			if V != 0 {
+				str := strconv.FormatFloat(ship1.PrePosition.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(ship1.PrePosition.Latitude, 'f', -1, 64) + "," + strconv.Itoa(V) + "\r\n"
+				n, err := danger5Writer.WriteString(str)
+				if n != len(str) && err != nil {
+					log.Println(err)
+				}
+				danger5Writer.Flush()
+			}
 		}
 		// 输出当前同步状态
 		spend := helper.TimeDeviation(nowTime, request.StartTime)

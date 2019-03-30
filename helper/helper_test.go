@@ -461,3 +461,13 @@ func Test_DangerUV(t *testing.T) {
 	t.Log(MeetingDangerUV(10))
 	t.Log(MeetingDangerUV(9.05))
 }
+
+func Test_Boundary(t *testing.T) {
+	t.Log(BoundaryR(0))
+	t.Log(BoundaryR(30))
+	t.Log(BoundaryR(60))
+	t.Log(BoundaryR(90))
+	t.Log(BoundaryR(120))
+	t.Log(BoundaryR(180))
+	t.Log(BoundaryR(270))
+}

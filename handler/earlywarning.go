@@ -72,9 +72,6 @@ func EarlyWarning(request *constant.EarlyWarningRequest) (response *constant.Ear
 				if ship2.COG > 360 || ship2.COG < 0 {
 					continue
 				}
-				if ship2.SOG < constant.StaticShip {
-					continue
-				}
 				azimuth := helper.PositionRelativeAzimuth(ship1.PrePosition, ship1.COG, ship2.PrePosition)
 				uDCPA := 0.0
 				uTCPA := 0.0

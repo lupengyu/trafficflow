@@ -239,7 +239,7 @@ func culMeeting() {
 				Year:   2019,
 				Month:  1,
 				Day:    1,
-				Hour:   0,
+				Hour:   23,
 				Minute: 59,
 				Second: 0,
 			},
@@ -324,6 +324,6 @@ func main() {
 	//culSpeed()
 	//culDoorLine()
 	//culSpacing()
-	//culMeeting()
-	earlyWarning()
+	culMeeting()
+	//earlyWarning()
 }

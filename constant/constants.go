@@ -304,7 +304,7 @@ type Alert struct {
 	UTCPA               float64              // TCPA预警值
 	UB                  float64              // 相对角度预警值
 	UD                  float64              // 相对距离预警
-	UV 					float64 			 // 本船速度预警值
+	UV                  float64              // 本船速度预警值
 	Danger              float64              // 预警评分
 }
 

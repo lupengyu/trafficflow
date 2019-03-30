@@ -332,7 +332,7 @@ func PositionRelativeVector(v0 float64, RelativeAzimuth float64, vt float64) flo
 }
 
 func BoundaryR(angle float64) float64 {
-	return constant.NauticalMile*1.7*cos(angle-19) + math.Sqrt(4.4+2.89*math.Pow(cos(angle-19), 2))
+	return constant.NauticalMile * (1.7*cos(angle-19) + math.Sqrt(4.4+2.89*math.Pow(cos(angle-19), 2)))
 }
 
 func MeetingDangerUDCPA(a float64, b float64, S float64, T float64, angle float64, DCPA float64) float64 {
