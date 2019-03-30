@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"github.com/cnkei/gospline"
 	"github.com/lupengyu/trafficflow/constant"
 	"math"
 	"sort"
@@ -149,9 +150,7 @@ func PositionSpacing(a *constant.Position, b *constant.Position) float64 {
 }
 
 /*
-	插值算法
-		TODO:
-			解决COG插值结果不合理的情况
+	插值算法(三次样条插值)
 */
 func TrackInterpolation(tracks []*constant.Track) *constant.Track {
 	if len(tracks) == 0 {
@@ -165,21 +164,64 @@ func TrackInterpolation(tracks []*constant.Track) *constant.Track {
 	if sorter.Len() == 1 {
 		return sorter.tracks[0]
 	}
-	track1 := sorter.tracks[0]
-	track2 := sorter.tracks[1]
-	diff := track1.Deviation - track2.Deviation
-	longitudeK := (track1.PrePosition.Longitude - track2.PrePosition.Longitude) / float64(diff)
-	latitudeK := (track1.PrePosition.Latitude - track2.PrePosition.Latitude) / float64(diff)
-	cogK := (track1.COG - track2.COG) / float64(diff)
-	sogK := (track1.SOG - track2.SOG) / float64(diff)
+
+	x := make([]float64, 0)
+	longitudeY := make([]float64, 0)
+	latitudeY := make([]float64, 0)
+	cogY := make([]float64, 0)
+	sogY := make([]float64, 0)
+	nearX := 9999.0
+	nearSOG := 0.0
+	for _, v := range sorter.tracks {
+		x = append(x, float64(v.Deviation))
+		longitudeY = append(longitudeY, v.PrePosition.Longitude)
+		latitudeY = append(latitudeY, v.PrePosition.Latitude)
+		cogY = append(cogY, v.COG)
+		sogY = append(sogY, v.SOG)
+		absX := math.Abs(float64(v.Deviation))
+		if absX < nearX {
+			nearX = absX
+			nearSOG = v.SOG
+		} else if absX == nearX && absX < 0 {
+			nearSOG = v.SOG
+		}
+	}
+	longitude := gospline.NewCubicSpline(x, longitudeY).At(0)
+	latitude := gospline.NewCubicSpline(x, latitudeY).At(0)
+	cog := gospline.NewCubicSpline(x, cogY).At(0)
+	sog := gospline.NewCubicSpline(x, sogY).At(0)
+	if sog < 0 {
+		sog = nearSOG
+	}
+	if cog < 0 {
+		cog = cog - float64(int(cog/360)-1)*360.0
+	} else if cog > 360 {
+		cog = cog - float64(int(cog/360))*360.0
+	}
 	return &constant.Track{
 		PrePosition: &constant.Position{
-			Longitude: track1.PrePosition.Longitude - float64(track1.Deviation)*longitudeK,
-			Latitude:  track1.PrePosition.Latitude - float64(track1.Deviation)*latitudeK,
+			Longitude: longitude,
+			Latitude:  latitude,
 		},
-		COG: track1.COG - float64(track1.Deviation)*cogK,
-		SOG: track1.SOG - float64(track1.Deviation)*sogK,
+		COG: cog,
+		SOG: sog,
 	}
+
+	//track1 := sorter.tracks[0]
+	//track2 := sorter.tracks[1]
+	//diff := track1.Deviation - track2.Deviation
+	//longitudeK := (track1.PrePosition.Longitude - track2.PrePosition.Longitude) / float64(diff)
+	//latitudeK := (track1.PrePosition.Latitude - track2.PrePosition.Latitude) / float64(diff)
+	//cogK := (track1.COG - track2.COG) / float64(diff)
+	//sogK := (track1.SOG - track2.SOG) / float64(diff)
+	//return &constant.Track{
+	//	PrePosition: &constant.Position{
+	//		Longitude: track1.PrePosition.Longitude - float64(track1.Deviation)*longitudeK,
+	//		Latitude:  track1.PrePosition.Latitude - float64(track1.Deviation)*latitudeK,
+	//	},
+	//	COG: track1.COG - float64(track1.Deviation)*cogK,
+	//	SOG: track1.SOG - float64(track1.Deviation)*sogK,
+	//}
 }
 
 func ArcSin(value float64) float64 {

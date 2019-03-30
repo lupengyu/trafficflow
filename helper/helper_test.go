@@ -2,6 +2,7 @@ package helper
 
 import (
 	"fmt"
+	"github.com/cnkei/gospline"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/dal/mysql"
 	"github.com/stretchr/testify/assert"
@@ -470,4 +471,18 @@ func Test_Boundary(t *testing.T) {
 	t.Log(BoundaryR(120))
 	t.Log(BoundaryR(180))
 	t.Log(BoundaryR(270))
+}
+
+func Test_InterSpline(t *testing.T) {
+	s := gospline.NewCubicSpline([]float64{0, 1}, []float64{0, 1})
+	fmt.Println(s.At(0), s.At(1), s.At(2), s.At(3), s.At(4), s.At(5))
+}
+
+func Test_math(t *testing.T) {
+	x := -400.2
+	x = x - float64(int(x/360)-1)*360.0
+	fmt.Println(x)
+	x = 400.2
+	x = x - float64(int(x/360))*360.0
+	fmt.Println(x)
 }

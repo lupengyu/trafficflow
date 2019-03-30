@@ -2,7 +2,6 @@ package helper
 
 import (
 	"github.com/lupengyu/trafficflow/constant"
-	"math"
 )
 
 type TrackSorter struct {
@@ -18,9 +17,6 @@ func (s *TrackSorter) Swap(i, j int) {
 }
 
 func (s *TrackSorter) Less(i, j int) bool {
-	if math.Abs(float64(s.tracks[i].Deviation)) != math.Abs(float64(s.tracks[j].Deviation)) {
-		return math.Abs(float64(s.tracks[i].Deviation)) < math.Abs(float64(s.tracks[j].Deviation))
-	}
 	return s.tracks[i].Deviation < s.tracks[j].Deviation
 }
 
