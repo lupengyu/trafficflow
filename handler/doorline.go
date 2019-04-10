@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"bufio"
 	"github.com/lupengyu/trafficflow/client/sql"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/helper"
 	"log"
+	"os"
+	"strconv"
 )
 
 /*
@@ -56,9 +59,11 @@ func CulDoorLine(request *constant.CulDoorLineRequest) (response *constant.CulDo
 			TrackMap[pos.MMSI] = &constant.Track{
 				PrePosition:      nowPosition,
 				DeWeightDoorLine: true,
+				TrackList:        []*constant.Position{nowPosition},
 			}
 		} else {
-			if helper.IsLineInterSect(request.StartPosition, request.EndPosition, TrackMap[pos.MMSI].PrePosition, nowPosition) {
+			TrackMap[pos.MMSI].TrackList = append(TrackMap[pos.MMSI].TrackList, nowPosition)
+			if helper.IsLineInterSect(request.StartPosition, request.EndPosition, TrackMap[pos.MMSI].PrePosition, nowPosition) == true {
 				if TrackMap[pos.MMSI].DeWeightDoorLine {
 					TrackMap[pos.MMSI].DeWeightDoorLine = false
 					deWeightingCnt += 1
@@ -66,6 +71,35 @@ func CulDoorLine(request *constant.CulDoorLineRequest) (response *constant.CulDo
 				cnt += 1
 			}
 			TrackMap[pos.MMSI].PrePosition = nowPosition
+		}
+	}
+
+	doorLine, err := os.Create("data/doorline.txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer func() {
+		doorLine.Close()
+	}()
+	doorLine.Sync()
+	doorLineWriter := bufio.NewWriter(doorLine)
+
+	for _, v := range TrackMap {
+		if v.DeWeightDoorLine == false {
+			// 写入路径数据
+			str := ""
+			for i := 0; i < len(v.TrackList); i += 1 {
+				str += strconv.FormatFloat(v.TrackList[i].Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(v.TrackList[i].Latitude, 'f', -1, 64)
+				if i != len(v.TrackList)-1 {
+					str += "-"
+				}
+			}
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n != len(str) && err != nil {
+				log.Println(err)
+			}
+			doorLineWriter.Flush()
 		}
 	}
 

@@ -87,6 +87,12 @@ func Test_IsLineInterSect(t *testing.T) {
 		&constant.Position{Latitude: -1, Longitude: 0},
 		&constant.Position{Latitude: 1, Longitude: 0},
 	))
+	assert.Equal(t, false, IsLineInterSect(
+		&constant.Position{Latitude: 24.444706, Longitude: 118.04939},
+		&constant.Position{Latitude: 24.41378, Longitude: 118.074398},
+		&constant.Position{Latitude: 24.106986666666664, Longitude: 117.99400666666666},
+		&constant.Position{Latitude: 24.503766666666667, Longitude: 118.63990333333332},
+	))
 }
 
 func Test_TimeDeviation(t *testing.T) {

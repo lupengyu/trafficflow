@@ -132,6 +132,15 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 			} else {
 				continue
 			}
+			if ship1.SOG < constant.StaticShip {
+				continue
+			}
+			// 判断插值后点是不是在合理区间内
+			longitudeArea := helper.LongitudeArea(ship1.PrePosition.Longitude, 10)
+			latitudeArea := helper.LatitudeArea(ship1.PrePosition.Latitude, 10)
+			if longitudeArea == -1 || latitudeArea == -1 {
+				continue
+			}
 			COG := ship1.COG
 			if COG > 360 || COG < 0 {
 				continue

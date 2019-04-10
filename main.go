@@ -143,34 +143,18 @@ func culSpeed() {
 func culDoorLine() {
 	response, err := handler.CulDoorLine(
 		&constant.CulDoorLineRequest{
-			//StartPosition: &constant.Position{
-			//	Longitude: 118.04939,
-			//	Latitude:  24.444706,
-			//},
-			//EndPosition: &constant.Position{
-			//	Longitude: 118.074398,
-			//	Latitude:  24.41378,
-			//},
-			//StartPosition: &constant.Position{
-			//	Longitude: 118.124272,
-			//	Latitude:  24.244077,
-			//},
-			//EndPosition: &constant.Position{
-			//	Longitude: 118.319528,
-			//	Latitude:  24.393509,
-			//},
 			StartPosition: &constant.Position{
-				Longitude: 118.344824,
-				Latitude:  24.393509,
+				Longitude: 118.04939 - 0.0105,
+				Latitude:  24.444706 - 0.0035,
 			},
 			EndPosition: &constant.Position{
-				Longitude: 118.593188,
-				Latitude:  24.221604,
+				Longitude: 118.074398 - 0.0105,
+				Latitude:  24.41378 - 0.0035,
 			},
 			StartTime: &constant.Data{
 				Year:   2018,
 				Month:  12,
-				Day:    25,
+				Day:    22,
 				Hour:   0,
 				Minute: 0,
 				Second: 0,
@@ -178,7 +162,7 @@ func culDoorLine() {
 			EndTime: &constant.Data{
 				Year:   2018,
 				Month:  12,
-				Day:    25,
+				Day:    22,
 				Hour:   23,
 				Minute: 59,
 				Second: 59,
@@ -239,7 +223,7 @@ func culMeeting() {
 				Year:   2019,
 				Month:  1,
 				Day:    1,
-				Hour:   0,
+				Hour:   23,
 				Minute: 59,
 				Second: 0,
 			},

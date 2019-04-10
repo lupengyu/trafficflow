@@ -127,7 +127,10 @@ func IsLineInterSect(a *constant.Position, b *constant.Position, c *constant.Pos
 	v := (d.Longitude-a.Longitude)*(b.Latitude-a.Latitude) - (b.Longitude-a.Longitude)*(d.Latitude-a.Latitude)
 	w := (a.Longitude-c.Longitude)*(d.Latitude-c.Latitude) - (d.Longitude-c.Longitude)*(a.Latitude-c.Latitude)
 	z := (b.Longitude-c.Longitude)*(d.Latitude-c.Latitude) - (d.Longitude-c.Longitude)*(b.Latitude-c.Latitude)
-	return u*v <= 0.00000001 && w*z <= 0.00000001
+	if w*z > 0 || u*v > 0 {
+		return false
+	}
+	return true
 }
 
 func TimeDeviation(a *constant.Data, b *constant.Data) int64 {

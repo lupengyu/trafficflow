@@ -219,12 +219,13 @@ type Position struct {
 }
 
 type Track struct {
-	PrePosition      *Position // 之前位置
-	DeWeightDoorLine bool      // 判断是否过门线
-	Time             *Data     // 当前时间
-	Deviation        int64     // 当前时间精度
-	COG              float64   // 船舶COG
-	SOG              float64   // 船舶SOG
+	PrePosition      *Position   // 之前位置
+	DeWeightDoorLine bool        // 判断是否过门线
+	Time             *Data       // 当前时间
+	Deviation        int64       // 当前时间精度
+	COG              float64     // 船舶COG
+	SOG              float64     // 船舶SOG
+	TrackList        []*Position // 船舶航迹
 }
 
 type CulDoorLineRequest struct {
