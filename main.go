@@ -143,26 +143,42 @@ func culSpeed() {
 func culDoorLine() {
 	response, err := handler.CulDoorLine(
 		&constant.CulDoorLineRequest{
+			//StartPosition: &constant.Position{
+			//	Longitude: 118.04939 - 0.0105,
+			//	Latitude:  24.444706 - 0.0035,
+			//},
+			//EndPosition: &constant.Position{
+			//	Longitude: 118.074398 - 0.0105,
+			//	Latitude:  24.41378 - 0.0035,
+			//},
+			//StartPosition: &constant.Position{
+			//	Longitude: 118.049497 - 0.0105,
+			//	Latitude:  24.451812 - 0.0035,
+			//},
+			//EndPosition: &constant.Position{
+			//	Longitude: 118.064822 - 0.0105,
+			//	Latitude:  24.448818 - 0.0035,
+			//},
 			StartPosition: &constant.Position{
-				Longitude: 118.04939 - 0.0105,
-				Latitude:  24.444706 - 0.0035,
+				Longitude: 118.049084 - 0.0105,
+				Latitude:  24.444986 - 0.0035,
 			},
 			EndPosition: &constant.Position{
-				Longitude: 118.074398 - 0.0105,
-				Latitude:  24.41378 - 0.0035,
+				Longitude: 118.046353 - 0.0105,
+				Latitude:  24.419127 - 0.0035,
 			},
 			StartTime: &constant.Data{
-				Year:   2018,
-				Month:  12,
-				Day:    22,
+				Year:   2019,
+				Month:  1,
+				Day:    2,
 				Hour:   0,
 				Minute: 0,
 				Second: 0,
 			},
 			EndTime: &constant.Data{
-				Year:   2018,
-				Month:  12,
-				Day:    22,
+				Year:   2019,
+				Month:  1,
+				Day:    2,
 				Hour:   23,
 				Minute: 59,
 				Second: 59,
@@ -306,8 +322,8 @@ func main() {
 	//culTraffic()
 	//culDensity()
 	//culSpeed()
-	//culDoorLine()
+	culDoorLine()
 	//culSpacing()
-	culMeeting()
+	//culMeeting()
 	//earlyWarning()
 }

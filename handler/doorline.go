@@ -85,6 +85,14 @@ func CulDoorLine(request *constant.CulDoorLineRequest) (response *constant.CulDo
 	doorLine.Sync()
 	doorLineWriter := bufio.NewWriter(doorLine)
 
+	startLine := strconv.FormatFloat(request.StartPosition.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(request.StartPosition.Latitude, 'f', -1, 64) + "-" +
+		strconv.FormatFloat(request.EndPosition.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(request.EndPosition.Latitude, 'f', -1, 64) + "\r\n"
+	n, err := doorLineWriter.WriteString(startLine)
+	if n != len(startLine) && err != nil {
+		log.Println(err)
+	}
+	doorLineWriter.Flush()
+
 	for _, v := range TrackMap {
 		if v.DeWeightDoorLine == false {
 			// 写入路径数据
