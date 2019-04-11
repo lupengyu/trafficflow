@@ -8,8 +8,8 @@ import (
 	"log"
 )
 
-func GetPositionWithShipID(shipID string) ([]constant.PositionMeta, error) {
-	rows, err := mysql.DB.Query("SELECT * from position where MMSI = ?", shipID)
+func GetPositionWithShipID(shipID int) ([]constant.PositionMeta, error) {
+	rows, err := mysql.DB.Query("SELECT * from position where MMSI = ? order by id", shipID)
 	defer func() {
 		err := rows.Close()
 		if err != nil {
@@ -17,7 +17,7 @@ func GetPositionWithShipID(shipID string) ([]constant.PositionMeta, error) {
 		}
 	}()
 	if err != nil {
-		return nil, errors.New("查询出错了: SELECT * from position where MMSI = " + shipID)
+		return nil, errors.New("查询出错了: SELECT * from position where MMSI = " + string(shipID))
 	}
 	positions := make([]constant.PositionMeta, 0)
 	for rows.Next() {

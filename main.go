@@ -316,14 +316,37 @@ func earlyWarning() {
 	helper.EarlyWarningResponsePrint(response)
 }
 
+func getTrajectory() {
+	startT := time.Now()
+	response, err := handler.GetTrajectory(&constant.GetTrajectoryRequest{
+		MMSI: 412596777,
+	})
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	elapsed := time.Since(startT)
+	fmt.Println("App elapsed: ", elapsed)
+	fmt.Println(response)
+}
+
+func dataSegmentation() {
+	startT := time.Now()
+	handler.DataSegmentation()
+	elapsed := time.Since(startT)
+	fmt.Println("App elapsed: ", elapsed)
+}
+
 func main() {
 	mysql.InitMysql()
 	cache.InitCache()
 	//culTraffic()
 	//culDensity()
 	//culSpeed()
-	culDoorLine()
+	//culDoorLine()
 	//culSpacing()
 	//culMeeting()
 	//earlyWarning()
+	//getTrajectory()
+	dataSegmentation()
 }

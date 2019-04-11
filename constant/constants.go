@@ -314,3 +314,10 @@ type Warning struct {
 	Alerts          []*Alert // 警告列表
 	Time            *Data    // 警告时间
 }
+
+type GetTrajectoryRequest struct {
+	MMSI int
+}
+
+type GetTrajectoryResponse struct {
+}
