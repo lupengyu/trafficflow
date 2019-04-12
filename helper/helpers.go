@@ -1,8 +1,12 @@
 package helper
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/lupengyu/trafficflow/constant"
+	"log"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -216,4 +220,29 @@ func AlertPrint(alert *constant.Alert) {
 }
 
 func EarlyWarningResponsePrint(response *constant.EarlyWarningResponse) {
+}
+
+func PointListOutput(fileName string, positions []constant.PositionMeta) {
+	file, err := os.Create("data/" + fileName + ".txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer func() {
+		file.Close()
+	}()
+	file.Sync()
+	writer := bufio.NewWriter(file)
+
+	for index, v := range positions {
+		str := strconv.FormatFloat(v.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(v.Latitude, 'f', -1, 64)
+		if index != len(positions)-1 {
+			str += "-"
+		}
+		n, err := writer.WriteString(str)
+		if n != len(str) && err != nil {
+			log.Println(err)
+		}
+		writer.Flush()
+	}
 }

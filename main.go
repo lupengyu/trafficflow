@@ -318,21 +318,25 @@ func earlyWarning() {
 
 func getTrajectory() {
 	startT := time.Now()
-	response, err := handler.GetTrajectory(&constant.GetTrajectoryRequest{
+	handler.GetTrajectory(&constant.GetTrajectoryRequest{
 		MMSI: 412596777,
 	})
-	if err != nil {
-		log.Println(err)
-		return
-	}
 	elapsed := time.Since(startT)
 	fmt.Println("App elapsed: ", elapsed)
-	fmt.Println(response)
 }
 
 func dataSegmentation() {
 	startT := time.Now()
-	handler.DataSegmentation()
+	handler.DataSegmentation(&constant.DataSegmentationRequest{
+		MMSI: 412596777,
+	})
+	elapsed := time.Since(startT)
+	fmt.Println("App elapsed: ", elapsed)
+}
+
+func dataClean() {
+	startT := time.Now()
+	handler.DataClean()
 	elapsed := time.Since(startT)
 	fmt.Println("App elapsed: ", elapsed)
 }
@@ -348,5 +352,6 @@ func main() {
 	//culMeeting()
 	//earlyWarning()
 	//getTrajectory()
-	dataSegmentation()
+	//dataSegmentation()
+	dataClean()
 }

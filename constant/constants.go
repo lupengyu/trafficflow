@@ -316,8 +316,23 @@ type Warning struct {
 }
 
 type GetTrajectoryRequest struct {
-	MMSI int
+	MMSI       int
+	IsCleaning bool
 }
 
-type GetTrajectoryResponse struct {
+type DataSegmentationRequest struct {
+	MMSI       int
+	IsCleaning bool
+}
+
+type CleaningAndRepairPositionMetaRequest struct {
+	DataList []PositionMeta
+}
+
+type CleaningAndRepairPositionMetaResponse struct {
+	DataList []PositionMeta
+}
+
+type SaveCleanDataRequest struct {
+	DataList []PositionMeta
 }

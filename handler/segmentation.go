@@ -10,8 +10,8 @@ import (
 	"strconv"
 )
 
-func DataSegmentation() {
-	positions, err := sql.GetPositionWithShipID(412596777)
+func DataSegmentation(request *constant.DataSegmentationRequest) {
+	positions, err := sql.GetPositionWithShipID(request.MMSI)
 	if err != nil {
 		log.Println("查询失败")
 		return
@@ -69,7 +69,6 @@ func DataSegmentation() {
 	start := 0
 	cnt := 1
 	for _, v := range ends {
-		log.Println(start, v)
 		segmentation, err := os.Create("data/segmentation" + strconv.Itoa(cnt) + ".txt")
 		if err != nil {
 			log.Println(err)
@@ -95,7 +94,6 @@ func DataSegmentation() {
 		cnt += 1
 	}
 	if start < length {
-		log.Println(start, length)
 		segmentation, err := os.Create("data/segmentation" + strconv.Itoa(cnt) + ".txt")
 		if err != nil {
 			log.Println(err)

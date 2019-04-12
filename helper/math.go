@@ -1,8 +1,10 @@
 package helper
 
 import (
+	"fmt"
 	"github.com/cnkei/gospline"
 	"github.com/lupengyu/trafficflow/constant"
+	"github.com/lupengyu/trafficflow/dal/cache"
 	"math"
 	"sort"
 	"time"
@@ -173,29 +175,19 @@ func TrackInterpolation(tracks []*constant.Track) *constant.Track {
 	latitudeY := make([]float64, 0)
 	cogY := make([]float64, 0)
 	sogY := make([]float64, 0)
-	nearX := 9999.0
-	nearSOG := 0.0
+	preCOG := sorter.tracks[0].COG
 	for _, v := range sorter.tracks {
 		x = append(x, float64(v.Deviation))
 		longitudeY = append(longitudeY, v.PrePosition.Longitude)
 		latitudeY = append(latitudeY, v.PrePosition.Latitude)
-		cogY = append(cogY, v.COG)
+		cogY = append(cogY, RateRange(v.COG, preCOG))
 		sogY = append(sogY, v.SOG)
-		absX := math.Abs(float64(v.Deviation))
-		if absX < nearX {
-			nearX = absX
-			nearSOG = v.SOG
-		} else if absX == nearX && absX < 0 {
-			nearSOG = v.SOG
-		}
 	}
 	longitude := gospline.NewCubicSpline(x, longitudeY).At(0)
 	latitude := gospline.NewCubicSpline(x, latitudeY).At(0)
-	cog := gospline.NewCubicSpline(x, cogY).At(0)
+	cog := gospline.NewCubicSpline(x, cogY).At(0) + preCOG
 	sog := gospline.NewCubicSpline(x, sogY).At(0)
-	if sog < 0 {
-		sog = nearSOG
-	}
+	sog = math.Max(0, sog)
 	if cog < 0 {
 		cog = cog - float64(int(cog/360)-1)*360.0
 	} else if cog > 360 {
@@ -209,22 +201,6 @@ func TrackInterpolation(tracks []*constant.Track) *constant.Track {
 		COG: cog,
 		SOG: sog,
 	}
-
-	//track1 := sorter.tracks[0]
-	//track2 := sorter.tracks[1]
-	//diff := track1.Deviation - track2.Deviation
-	//longitudeK := (track1.PrePosition.Longitude - track2.PrePosition.Longitude) / float64(diff)
-	//latitudeK := (track1.PrePosition.Latitude - track2.PrePosition.Latitude) / float64(diff)
-	//cogK := (track1.COG - track2.COG) / float64(diff)
-	//sogK := (track1.SOG - track2.SOG) / float64(diff)
-	//return &constant.Track{
-	//	PrePosition: &constant.Position{
-	//		Longitude: track1.PrePosition.Longitude - float64(track1.Deviation)*longitudeK,
-	//		Latitude:  track1.PrePosition.Latitude - float64(track1.Deviation)*latitudeK,
-	//	},
-	//	COG: track1.COG - float64(track1.Deviation)*cogK,
-	//	SOG: track1.SOG - float64(track1.Deviation)*sogK,
-	//}
 }
 
 func ArcSin(value float64) float64 {
@@ -456,4 +432,133 @@ func MeetingDangerUT(v0 float64, vt float64, T float64) float64 {
 	} else {
 		return 0.0
 	}
+}
+
+func MaxRate(length int, v float64) float64 {
+	return 360.0 * v * 1.852 / (2.0 * 3.6 * math.Pi * float64(length))
+}
+
+func MaxAcceleration(length int, maxSpeed float64) float64 {
+	maxSpeed = maxSpeed * 1.852 / 3.6
+	t := 10.0 * float64(length) / maxSpeed
+	return maxSpeed / t
+}
+
+func movingAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
+	if prePosition.Longitude == position.Longitude &&
+		prePosition.Latitude == position.Latitude &&
+		prePosition.SOG > 2 {
+		fmt.Println("moving", prePosition, position) // TODO: remove
+		return false
+	}
+	return true
+}
+
+// 暂时不实现
+func speedAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
+	return true
+}
+
+func driftAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
+	diff := TimeDeviation(&constant.Data{
+		Year:   position.Year,
+		Month:  position.Month,
+		Day:    position.Day,
+		Hour:   position.Hour,
+		Minute: position.Minute,
+		Second: position.Second,
+	}, &constant.Data{
+		Year:   prePosition.Year,
+		Month:  prePosition.Month,
+		Day:    prePosition.Day,
+		Hour:   prePosition.Hour,
+		Minute: prePosition.Minute,
+		Second: prePosition.Second,
+	})
+	shipInfo := cache.GetShipInfo(position.MMSI)
+	a := MaxAcceleration(shipInfo.Length, 16.0)
+	maxV := math.Min(16.0, prePosition.SOG+float64(diff)*a) * 1.852 / 3.6
+	D := PositionSpacing(&constant.Position{
+		Latitude:  prePosition.Latitude,
+		Longitude: prePosition.Longitude,
+	}, &constant.Position{
+		Latitude:  position.Latitude,
+		Longitude: position.Longitude,
+	})
+	acturalV := D / float64(diff)
+	if acturalV > maxV {
+		fmt.Println("drift", acturalV, maxV, prePosition, position) // TODO: remove
+		return false
+	}
+	return true
+}
+
+func accelerationAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
+	diff := TimeDeviation(&constant.Data{
+		Year:   position.Year,
+		Month:  position.Month,
+		Day:    position.Day,
+		Hour:   position.Hour,
+		Minute: position.Minute,
+		Second: position.Second,
+	}, &constant.Data{
+		Year:   prePosition.Year,
+		Month:  prePosition.Month,
+		Day:    prePosition.Day,
+		Hour:   prePosition.Hour,
+		Minute: prePosition.Minute,
+		Second: prePosition.Second,
+	})
+	shipInfo := cache.GetShipInfo(position.MMSI)
+	a := MaxAcceleration(shipInfo.Length, 16.0)
+	if position.SOG > prePosition.SOG+float64(diff)*a {
+		fmt.Println("acceleration", position.SOG, prePosition.SOG+float64(diff)*a, prePosition, position) // TODO: remove
+		return false
+	}
+	return true
+}
+
+func rateAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
+	rate := math.Max(position.COG-prePosition.COG, prePosition.COG-position.COG)
+	absRate := math.Min(rate, 360.0-rate)
+	diff := TimeDeviation(&constant.Data{
+		Year:   position.Year,
+		Month:  position.Month,
+		Day:    position.Day,
+		Hour:   position.Hour,
+		Minute: position.Minute,
+		Second: position.Second,
+	}, &constant.Data{
+		Year:   prePosition.Year,
+		Month:  prePosition.Month,
+		Day:    prePosition.Day,
+		Hour:   prePosition.Hour,
+		Minute: prePosition.Minute,
+		Second: prePosition.Second,
+	})
+	shipInfo := cache.GetShipInfo(position.MMSI)
+	a := MaxAcceleration(shipInfo.Length, 16.0)
+	maxV := math.Min(16.0, prePosition.SOG+float64(diff)*a) * 1.852 / 3.6
+	maxRate := MaxRate(shipInfo.Length, maxV)
+	if absRate > float64(diff)*maxRate {
+		fmt.Println("rate", absRate, float64(diff)*maxRate, prePosition, position) // TODO: remove
+		return false
+	}
+	return true
+}
+
+func PositionAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
+	return movingAvailable(position, prePosition) && speedAvailable(position, prePosition) &&
+		driftAvailable(position, prePosition) && accelerationAvailable(position, prePosition) &&
+		rateAvailable(position, prePosition)
+}
+
+func RateRange(now float64, pre float64) float64 {
+	rateRange := now - pre
+	if rateRange < -180 {
+		return rateRange + 360.0
+	} else if rateRange > 180 {
+		return rateRange - 360.0
+	}
+	return rateRange
 }

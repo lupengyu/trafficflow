@@ -9,17 +9,17 @@ import (
 	"strconv"
 )
 
-func GetTrajectory(request *constant.GetTrajectoryRequest) (*constant.GetTrajectoryResponse, error) {
+func GetTrajectory(request *constant.GetTrajectoryRequest) {
 	positions, err := sql.GetPositionWithShipID(request.MMSI)
 	if err != nil {
 		log.Println("查询失败")
-		return nil, nil
+		return
 	}
 	log.Println("查询完成，总长度:", len(positions))
 	trajectory, err := os.Create("data/trajectory.txt")
 	if err != nil {
 		log.Println(err)
-		return nil, nil
+		return
 	}
 	defer func() {
 		trajectory.Close()
@@ -28,9 +28,6 @@ func GetTrajectory(request *constant.GetTrajectoryRequest) (*constant.GetTraject
 	trajectoryWriter := bufio.NewWriter(trajectory)
 
 	for index, v := range positions {
-		if index%100 == 0 {
-			log.Println(index)
-		}
 		str := strconv.FormatFloat(v.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(v.Latitude, 'f', -1, 64)
 		if index != len(positions)-1 {
 			str += "-"
@@ -41,6 +38,4 @@ func GetTrajectory(request *constant.GetTrajectoryRequest) (*constant.GetTraject
 		}
 		trajectoryWriter.Flush()
 	}
-
-	return nil, nil
 }

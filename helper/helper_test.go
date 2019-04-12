@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"container/list"
 	"fmt"
 	"github.com/cnkei/gospline"
 	"github.com/lupengyu/trafficflow/constant"
@@ -491,4 +492,36 @@ func Test_math(t *testing.T) {
 	x = 400.2
 	x = x - float64(int(x/360))*360.0
 	fmt.Println(x)
+}
+
+func Test_MaxRate(t *testing.T) {
+	fmt.Println(MaxRate(110, 8))
+	fmt.Println(MaxRate(110, 0))
+	fmt.Println(MaxRate(110, 4))
+}
+
+func Test_MaxAcceleration(t *testing.T) {
+	fmt.Println(MaxAcceleration(110, 16))
+}
+
+func Test_RateRange(t *testing.T) {
+	fmt.Println(RateRange(20, 340))
+	fmt.Println(RateRange(340, 300))
+	fmt.Println(RateRange(300, 340))
+	fmt.Println(RateRange(340, 20))
+}
+
+func Test_List(t *testing.T) {
+	List := list.New()
+	List.PushBack(1)
+	List.PushBack(2)
+	List.PushBack(3)
+	for e := List.Front(); e != nil; e = e.Next() {
+		fmt.Println(e.Value)
+	}
+	List.Remove(List.Front())
+	List.PushBack(4)
+	for e := List.Front(); e != nil; e = e.Next() {
+		fmt.Println(e.Value)
+	}
 }
