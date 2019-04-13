@@ -1,22 +1,35 @@
 package handler
 
 import (
+	"bufio"
 	"container/list"
-	"fmt"
 	"github.com/cnkei/gospline"
 	"github.com/lupengyu/trafficflow/client/sql"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/helper"
 	"log"
 	"math"
+	"os"
+	"strconv"
 	"time"
 )
 
-/*
-	清洗程序
-*/
-func DataClean() {
-	positions, err := sql.GetPositionWithShipID(412596777)
+var file *os.File
+var err error
+var writer *bufio.Writer
+
+func initWriter(fileName string) {
+	file, err = os.Create("data/" + fileName + ".txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	file.Sync()
+	writer = bufio.NewWriter(file)
+}
+
+func cleanShip(shipID int) {
+	positions, err := sql.GetPositionWithShipID(shipID)
 	if err != nil {
 		log.Println("查询失败")
 		return
@@ -72,8 +85,6 @@ func DataClean() {
 	// 分段清洗
 	start := 0
 	cnt := 1
-	//log.Println(ignore)
-	//log.Println(ends)
 	ignoreIndex := 0
 	for _, v := range ends {
 		dataList := make([]constant.PositionMeta, 0)
@@ -84,17 +95,16 @@ func DataClean() {
 			}
 			dataList = append(dataList, positions[i])
 		}
-		response, err := CleaningAndRepairPositionMeta(&constant.CleaningAndRepairPositionMetaRequest{
+		response, err := cleaningAndRepairPositionMeta(&constant.CleaningAndRepairPositionMetaRequest{
 			DataList: dataList,
 		})
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		SaveCleanData(&constant.SaveCleanDataRequest{
+		saveCleanData(&constant.SaveCleanDataRequest{
 			DataList: response.DataList,
 		})
-		return // TODO: remove return
 		start = v
 		cnt += 1
 	}
@@ -107,31 +117,20 @@ func DataClean() {
 			}
 			dataList = append(dataList, positions[i])
 		}
-		response, err := CleaningAndRepairPositionMeta(&constant.CleaningAndRepairPositionMetaRequest{
+		response, err := cleaningAndRepairPositionMeta(&constant.CleaningAndRepairPositionMetaRequest{
 			DataList: dataList,
 		})
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		SaveCleanData(&constant.SaveCleanDataRequest{
+		saveCleanData(&constant.SaveCleanDataRequest{
 			DataList: response.DataList,
 		})
 	}
 }
 
-/*
-	清洗和修复数据
-*/
-func CleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMetaRequest) (*constant.CleaningAndRepairPositionMetaResponse, error) {
-	fmt.Println(request.DataList)
-	if len(request.DataList) == 1 {
-		return &constant.CleaningAndRepairPositionMetaResponse{
-			DataList: request.DataList,
-		}, nil
-	}
-	// 数据清洗
-	rawData := request.DataList
+func cleanData(rawData []constant.PositionMeta) []constant.PositionMeta {
 	length := len(rawData)
 	ignore := make([]int, 0)
 	start := 0
@@ -155,13 +154,13 @@ func CleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMe
 		prePosition = rawData[i]
 		cleanData = append(cleanData, prePosition)
 	}
+	return cleanData
+}
 
-	helper.PointListOutput("clean", cleanData)
-
-	// 数据修复
+func repairData(cleanData []constant.PositionMeta) []constant.PositionMeta {
 	repairData := make([]constant.PositionMeta, 0)
 	beforeList := list.New() // 前队列
-	prePosition = cleanData[0]
+	prePosition := cleanData[0]
 	cleanLength := len(cleanData)
 	beforeList.PushBack(prePosition)
 	repairData = append(repairData, prePosition)
@@ -243,11 +242,11 @@ func CleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMe
 				sogY = append(sogY, position.SOG)
 			}
 
-			fmt.Println("x", x)
-			fmt.Println("longitudeY", longitudeY)
-			fmt.Println("latitudeY", latitudeY)
-			fmt.Println("cogY", cogY)
-			fmt.Println("sogY", sogY)
+			//fmt.Println("x", x)
+			//fmt.Println("longitudeY", longitudeY)
+			//fmt.Println("latitudeY", latitudeY)
+			//fmt.Println("cogY", cogY)
+			//fmt.Println("sogY", sogY)
 
 			longitudeFunc := gospline.NewCubicSpline(x, longitudeY)
 			latitudeFunc := gospline.NewCubicSpline(x, latitudeY)
@@ -256,13 +255,13 @@ func CleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMe
 
 			need := (int(diff) - 1) / 30
 			baseTime := time.Date(preTime.Year, time.Month(preTime.Month), preTime.Day, preTime.Hour, preTime.Minute, preTime.Second, 0, time.UTC)
-			fmt.Println("=============")
-			fmt.Println(prePosition)
-			fmt.Println(nowPosition)
+			//fmt.Println("=============")
+			//fmt.Println(prePosition)
+			//fmt.Println(nowPosition)
 			for j := 0; j < need; j++ {
 				add := (j + 1) * int(diff) / (need + 1)
 				resultTime := baseTime.Add(time.Duration(add)*time.Second)
-				fmt.Println(baseTime, resultTime, add)
+				//fmt.Println(baseTime, resultTime, add)
 				longitude := longitudeFunc.At(float64(add))
 				latitude := latitudeFunc.At(float64(add))
 				cog := cogFunc.At(float64(add)) + preCOG
@@ -292,12 +291,32 @@ func CleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMe
 				beforeList.PushBack(position)
 				prePosition = position
 				repairData = append(repairData, prePosition)
-				fmt.Println(position)
+				//fmt.Println(position)
 			}
 		}
 	}
+	return repairData
+}
 
-	helper.PointListOutput("repair", repairData)
+/*
+	清洗和修复数据
+*/
+func cleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMetaRequest) (*constant.CleaningAndRepairPositionMetaResponse, error) {
+	//fmt.Println(request.DataList)
+	if len(request.DataList) == 1 {
+		return &constant.CleaningAndRepairPositionMetaResponse{
+			DataList: request.DataList,
+		}, nil
+	}
+	// 数据清洗
+	cleanData := cleanData(request.DataList)
+
+	//helper.PointListOutput("clean", cleanData)
+
+	// 数据修复
+	repairData := repairData(cleanData)
+
+	//helper.PointListOutput("repair", repairData)
 
 	return &constant.CleaningAndRepairPositionMetaResponse{
 		DataList: repairData,
@@ -307,6 +326,29 @@ func CleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMe
 /*
 	新数据存储
 */
-func SaveCleanData(request *constant.SaveCleanDataRequest) {
+func saveCleanData(request *constant.SaveCleanDataRequest) {
+	for _, v := range request.DataList {
+		str := strconv.FormatFloat(v.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(v.Latitude, 'f', -1, 64)
+		//if index != len(request.DataList)-1 {
+			str += "-"
+		//}
+		n, err := writer.WriteString(str)
+		if n != len(str) && err != nil {
+			log.Println(err)
+		}
+		writer.Flush()
+	}
+	//writer.WriteString("\r\n")
+	//writer.Flush()
+}
 
+/*
+	清洗程序
+*/
+func DataClean() {
+	initWriter("clean_repair-trajectory")
+	defer func() {
+		file.Close()
+	}()
+	cleanShip(412596777)
 }

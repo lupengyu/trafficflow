@@ -67,18 +67,17 @@ func DataSegmentation(request *constant.DataSegmentationRequest) {
 	log.Println("分段完成，一共", len(ends), "段")
 	// 输出原始数据
 	start := 0
-	cnt := 1
+	segmentation, err := os.Create("data/segmentation.txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer func() {
+		segmentation.Close()
+	}()
+	segmentation.Sync()
+	segmentationWriter := bufio.NewWriter(segmentation)
 	for _, v := range ends {
-		segmentation, err := os.Create("data/segmentation" + strconv.Itoa(cnt) + ".txt")
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		defer func() {
-			segmentation.Close()
-		}()
-		segmentation.Sync()
-		segmentationWriter := bufio.NewWriter(segmentation)
 		for i := start; i < v; i++ {
 			str := strconv.FormatFloat(positions[i].Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(positions[i].Latitude, 'f', -1, 64)
 			if i != v-1 {
@@ -90,20 +89,11 @@ func DataSegmentation(request *constant.DataSegmentationRequest) {
 			}
 			segmentationWriter.Flush()
 		}
+		segmentationWriter.WriteString("\r\n")
+		segmentationWriter.Flush()
 		start = v
-		cnt += 1
 	}
 	if start < length {
-		segmentation, err := os.Create("data/segmentation" + strconv.Itoa(cnt) + ".txt")
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		defer func() {
-			segmentation.Close()
-		}()
-		segmentation.Sync()
-		segmentationWriter := bufio.NewWriter(segmentation)
 		for i := start; i < length; i++ {
 			str := strconv.FormatFloat(positions[i].Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(positions[i].Latitude, 'f', -1, 64)
 			if i != length-1 {
