@@ -18,6 +18,15 @@ func SliceDividePrintln(slice []int, divisor float64) {
 }
 
 func CulTrafficResponsePrint(response *constant.CulTrafficResponse, lotDivide int, latDivide int, day float64) {
+	fmt.Println("=========Traffic=========")
+	fmt.Println("Traffic:             ", response.TrafficData.Traffic)
+	fmt.Println("BigShipTraffic:      ", response.TrafficData.BigShipTraffic)
+	fmt.Println("SmallShipTraffic:    ", response.TrafficData.SmallShipTraffic)
+	fmt.Println("Type0ShipTraffic:    ", response.TrafficData.Type0ShipTraffic)
+	fmt.Println("Type6xShipTraffic:   ", response.TrafficData.Type6xShipTraffic)
+	fmt.Println("Type7xShipTraffic:   ", response.TrafficData.Type7xShipTraffic)
+	fmt.Println("Type8xShipTraffic:   ", response.TrafficData.Type8xShipTraffic)
+	fmt.Println("OtherTypeShipTraffic:", response.TrafficData.OtherTypeShipTraffic)
 	fmt.Println("=========DayTraffic=========")
 	for j := latDivide - 1; j >= 0; j -= 1 {
 		for i := 0; i < lotDivide; i += 1 {
@@ -67,10 +76,17 @@ func CulTrafficResponsePrint(response *constant.CulTrafficResponse, lotDivide in
 		}
 		fmt.Print("\n")
 	}
+	fmt.Println("=========DayOtherTypeShipTraffic=========")
+	for j := latDivide - 1; j >= 0; j -= 1 {
+		for i := 0; i < lotDivide; i += 1 {
+			fmt.Printf("%8.2f", float64(response.AreaTraffics[i][j].OtherTypeShipTraffic)/day)
+		}
+		fmt.Print("\n")
+	}
 	fmt.Println("=========HourTraffic=========")
-	fmt.Println("Hour, Traffic, BigShipTraffic, SmallShipTraffic Type0ShipTraffic Type6xShipTraffic Type7xShipTraffic Type8xShipTraffic")
+	fmt.Println("Hour, Traffic, BigShipTraffic, SmallShipTraffic Type0ShipTraffic Type6xShipTraffic Type7xShipTraffic Type8xShipTraffic OtherTypeShipTraffic")
 	for i := 0; i < 24; i += 1 {
-		fmt.Printf("%2.d: %8.2f%8.2f%8.2f%8.2f%8.2f%8.2f%8.2f\n",
+		fmt.Printf("%2.d: %8.2f%8.2f%8.2f%8.2f%8.2f%8.2f%8.2f%8.2f\n",
 			i,
 			float64(response.TrafficData.HourTrafficSum[i])/day,
 			float64(response.TrafficData.HourBigShipTrafficSum[i])/day,
@@ -79,31 +95,103 @@ func CulTrafficResponsePrint(response *constant.CulTrafficResponse, lotDivide in
 			float64(response.TrafficData.HourType6xShipTrafficSum[i])/day,
 			float64(response.TrafficData.HourType7xShipTrafficSum[i])/day,
 			float64(response.TrafficData.HourType8xShipTrafficSum[i])/day,
+			float64(response.TrafficData.HourOtherTypeShipTraffic[i]),
 		)
 	}
+
+	fmt.Println("Traffic")
+	for _, v := range response.TrafficData.HourTrafficSum {
+		fmt.Print(float64(v)/day, ",")
+	}
+	fmt.Println("")
+
+	fmt.Println("BigShipTraffic")
+	for _, v := range response.TrafficData.HourBigShipTrafficSum {
+		fmt.Print(float64(v)/day, ",")
+	}
+	fmt.Println("")
+
+	fmt.Println("SmallShipTraffic")
+	for _, v := range response.TrafficData.HourSmallShipTrafficSum {
+		fmt.Print(float64(v)/day, ",")
+	}
+	fmt.Println("")
+
+	fmt.Println("Type0ShipTraffic")
+	for _, v := range response.TrafficData.HourType0ShipTrafficSum {
+		fmt.Print(float64(v)/day, ",")
+	}
+	fmt.Println("")
+
+	fmt.Println("Type6xShipTraffic")
+	for _, v := range response.TrafficData.HourType6xShipTrafficSum {
+		fmt.Print(float64(v)/day, ",")
+	}
+	fmt.Println("")
+
+	fmt.Println("Type7xShipTraffic")
+	for _, v := range response.TrafficData.HourType7xShipTrafficSum {
+		fmt.Print(float64(v)/day, ",")
+	}
+	fmt.Println("")
+
+	fmt.Println("Type8xShipTraffic")
+	for _, v := range response.TrafficData.HourType8xShipTrafficSum {
+		fmt.Print(float64(v)/day, ",")
+	}
+	fmt.Println("")
+
+	fmt.Println("OtherTypeShipTraffic")
+	for _, v := range response.TrafficData.HourOtherTypeShipTraffic {
+		fmt.Print(float64(v)/day, ",")
+	}
+	fmt.Println("")
+
 	fmt.Println("=========AreaTraffic=========")
-	for j := latDivide - 1; j >= 0; j -= 1 {
-		for i := 0; i < lotDivide; i += 1 {
-			fmt.Println(i, ",", j, ":")
-			fmt.Printf("Traffic:                   %8.2f\n", float64(response.AreaTraffics[i][j].Traffic)/day)
-			fmt.Printf("Repetition Rate            %8.2f\n", 100*float64(SliceSum(response.AreaTraffics[i][j].HourTraffic))/float64(response.AreaTraffics[i][j].Traffic))
-			fmt.Print("Hour Traffic:              ")
-			SliceDividePrintln(response.AreaTraffics[i][j].HourTraffic, day)
-			fmt.Print("Hour Big Ship Traffic:     ")
-			SliceDividePrintln(response.AreaTraffics[i][j].HourBigShipTraffic, day)
-			fmt.Print("Hour Small Ship Traffic:   ")
-			SliceDividePrintln(response.AreaTraffics[i][j].HourSmallShipTraffic, day)
-			fmt.Print("Hour Type 0 Ship Traffic:  ")
-			SliceDividePrintln(response.AreaTraffics[i][j].HourType0ShipTraffic, day)
-			fmt.Print("Hour Type 6x Ship Traffic: ")
-			SliceDividePrintln(response.AreaTraffics[i][j].HourType6xShipTraffic, day)
-			fmt.Print("Hour Type 7x Ship Traffic: ")
-			SliceDividePrintln(response.AreaTraffics[i][j].HourType7xShipTraffic, day)
-			fmt.Print("Hour Type 8x Ship Traffic: ")
-			SliceDividePrintln(response.AreaTraffics[i][j].HourType8xShipTraffic, day)
-			fmt.Println("==================")
+	fmt.Print("[")
+	for i := 0; i < 100; i++ {
+		for j := 0; j < 100; j++ {
+			traffic := response.AreaTraffics[i][j].Traffic
+			value := 5
+			if traffic > 100*int(day) {
+				value = 0
+			} else if traffic > 75*int(day) {
+				value = 1
+			} else if traffic > 50*int(day) {
+				value = 2
+			} else if traffic > 25*int(day) {
+				value = 3
+			} else if traffic > 0 {
+				value = 4
+			}
+			fmt.Print("[", i, ",", j, ",", value, "],")
 		}
 	}
+	fmt.Print("]\r\n")
+	//for j := latDivide - 1; j >= 0; j -= 1 {
+	//	for i := 0; i < lotDivide; i += 1 {
+	//		fmt.Println(i, ",", j, ":")
+	//		fmt.Printf("Traffic:                   %8.2f\n", float64(response.AreaTraffics[i][j].Traffic)/day)
+	//		fmt.Printf("Repetition Rate            %8.2f\n", 100*float64(SliceSum(response.AreaTraffics[i][j].HourTraffic))/float64(response.AreaTraffics[i][j].Traffic))
+	//		fmt.Print("Hour Traffic:                 ")
+	//		SliceDividePrintln(response.AreaTraffics[i][j].HourTraffic, day)
+	//		fmt.Print("Hour Big Ship Traffic:        ")
+	//		SliceDividePrintln(response.AreaTraffics[i][j].HourBigShipTraffic, day)
+	//		fmt.Print("Hour Small Ship Traffic:      ")
+	//		SliceDividePrintln(response.AreaTraffics[i][j].HourSmallShipTraffic, day)
+	//		fmt.Print("Hour Type 0 Ship Traffic:     ")
+	//		SliceDividePrintln(response.AreaTraffics[i][j].HourType0ShipTraffic, day)
+	//		fmt.Print("Hour Type 6x Ship Traffic:    ")
+	//		SliceDividePrintln(response.AreaTraffics[i][j].HourType6xShipTraffic, day)
+	//		fmt.Print("Hour Type 7x Ship Traffic:    ")
+	//		SliceDividePrintln(response.AreaTraffics[i][j].HourType7xShipTraffic, day)
+	//		fmt.Print("Hour Type 8x Ship Traffic:    ")
+	//		SliceDividePrintln(response.AreaTraffics[i][j].HourType8xShipTraffic, day)
+	//		fmt.Print("Hour Other Type Ship Traffic: ")
+	//		SliceDividePrintln(response.AreaTraffics[i][j].HourOtherTypeShipTraffic, day)
+	//		fmt.Println("==================")
+	//	}
+	//}
 }
 
 func CulDensityResponsePrint(response *constant.CulDensityResponse, lotDivide int, latDivide int) {
@@ -244,5 +332,11 @@ func PointListOutput(fileName string, positions []constant.PositionMeta) {
 			log.Println(err)
 		}
 		writer.Flush()
+	}
+}
+
+func FmtPrintList(positions []constant.PositionMeta) {
+	for _, v := range positions {
+		fmt.Println(v)
 	}
 }

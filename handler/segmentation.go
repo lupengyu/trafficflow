@@ -65,6 +65,7 @@ func DataSegmentation(request *constant.DataSegmentationRequest) {
 		index = start
 	}
 	log.Println("分段完成，一共", len(ends), "段")
+	log.Println(ends, ignore)
 	// 输出原始数据
 	start := 0
 	segmentation, err := os.Create("data/segmentation.txt")

@@ -82,11 +82,14 @@ func cleanShip(shipID int) {
 		}
 		index = start
 	}
+	//log.Println(ends, ignore)
 	// 分段清洗
 	start := 0
 	cnt := 1
 	ignoreIndex := 0
+	preData := constant.PositionMeta{ID: -1}
 	for _, v := range ends {
+		//log.Println("index:", cnt)
 		dataList := make([]constant.PositionMeta, 0)
 		for i := start; i < v; i++ {
 			if ignoreIndex < len(ignore) && i == ignore[ignoreIndex] {
@@ -96,11 +99,15 @@ func cleanShip(shipID int) {
 			dataList = append(dataList, positions[i])
 		}
 		response, err := cleaningAndRepairPositionMeta(&constant.CleaningAndRepairPositionMetaRequest{
-			DataList: dataList,
+			DataList:    dataList,
+			PrePosition: preData,
 		})
 		if err != nil {
 			log.Println(err)
 			return
+		}
+		if len(response.DataList) > 0 {
+			preData = response.DataList[len(response.DataList)-1]
 		}
 		saveCleanData(&constant.SaveCleanDataRequest{
 			DataList: response.DataList,
@@ -118,7 +125,8 @@ func cleanShip(shipID int) {
 			dataList = append(dataList, positions[i])
 		}
 		response, err := cleaningAndRepairPositionMeta(&constant.CleaningAndRepairPositionMetaRequest{
-			DataList: dataList,
+			DataList:    dataList,
+			PrePosition: preData,
 		})
 		if err != nil {
 			log.Println(err)
@@ -130,12 +138,23 @@ func cleanShip(shipID int) {
 	}
 }
 
-func cleanData(rawData []constant.PositionMeta) []constant.PositionMeta {
+func cleanData(rawData []constant.PositionMeta, preData constant.PositionMeta) []constant.PositionMeta {
 	length := len(rawData)
 	ignore := make([]int, 0)
 	start := 0
 	prePosition := rawData[0]
 	cleanData := []constant.PositionMeta{prePosition}
+	if length <= 3 {
+		return []constant.PositionMeta{}
+		////log.Println("one point judge", preData)
+		//if preData.ID != -1 && helper.PositionAvailable(rawData[0], preData) == false {
+		//	log.Println("one point unavailable")
+		//	return []constant.PositionMeta{}
+		//} else {
+		//	log.Println("ok")
+		//	return rawData
+		//}
+	}
 	// 起点适用性判断 仅当长度大于等于3时判断
 	if length >= 3 && helper.PositionAvailable(rawData[1], rawData[0]) == false {
 		if helper.PositionAvailable(rawData[2], rawData[1]) == true {
@@ -158,6 +177,9 @@ func cleanData(rawData []constant.PositionMeta) []constant.PositionMeta {
 }
 
 func repairData(cleanData []constant.PositionMeta) []constant.PositionMeta {
+	if len(cleanData) == 0 {
+		return []constant.PositionMeta{}
+	}
 	repairData := make([]constant.PositionMeta, 0)
 	beforeList := list.New() // 前队列
 	prePosition := cleanData[0]
@@ -192,7 +214,7 @@ func repairData(cleanData []constant.PositionMeta) []constant.PositionMeta {
 			repairData = append(repairData, prePosition)
 		} else {
 			afterList := list.New()
-			for start := i; start < cleanLength; start ++ {
+			for start := i; start < cleanLength; start++ {
 				if afterList.Len() == 3 {
 					break
 				}
@@ -260,7 +282,7 @@ func repairData(cleanData []constant.PositionMeta) []constant.PositionMeta {
 			//fmt.Println(nowPosition)
 			for j := 0; j < need; j++ {
 				add := (j + 1) * int(diff) / (need + 1)
-				resultTime := baseTime.Add(time.Duration(add)*time.Second)
+				resultTime := baseTime.Add(time.Duration(add) * time.Second)
 				//fmt.Println(baseTime, resultTime, add)
 				longitude := longitudeFunc.At(float64(add))
 				latitude := latitudeFunc.At(float64(add))
@@ -273,17 +295,17 @@ func repairData(cleanData []constant.PositionMeta) []constant.PositionMeta {
 					cog = cog - float64(int(cog/360))*360.0
 				}
 				position := constant.PositionMeta{
-					MMSI: prePosition.MMSI,
-					SOG:sog,
-					COG:cog,
-					Longitude:longitude,
-					Latitude:latitude,
-					Year:   resultTime.Year(),
-					Month:  int(resultTime.Month()),
-					Day:    resultTime.Day(),
-					Hour:   resultTime.Hour(),
-					Minute: resultTime.Minute(),
-					Second: resultTime.Second(),
+					MMSI:      prePosition.MMSI,
+					SOG:       sog,
+					COG:       cog,
+					Longitude: longitude,
+					Latitude:  latitude,
+					Year:      resultTime.Year(),
+					Month:     int(resultTime.Month()),
+					Day:       resultTime.Day(),
+					Hour:      resultTime.Hour(),
+					Minute:    resultTime.Minute(),
+					Second:    resultTime.Second(),
 				}
 				if beforeList.Len() == 3 {
 					beforeList.Remove(beforeList.Front())
@@ -293,6 +315,8 @@ func repairData(cleanData []constant.PositionMeta) []constant.PositionMeta {
 				repairData = append(repairData, prePosition)
 				//fmt.Println(position)
 			}
+			prePosition = nowPosition
+			repairData = append(repairData, prePosition)
 		}
 	}
 	return repairData
@@ -303,20 +327,25 @@ func repairData(cleanData []constant.PositionMeta) []constant.PositionMeta {
 */
 func cleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMetaRequest) (*constant.CleaningAndRepairPositionMetaResponse, error) {
 	//fmt.Println(request.DataList)
-	if len(request.DataList) == 1 {
-		return &constant.CleaningAndRepairPositionMetaResponse{
-			DataList: request.DataList,
-		}, nil
-	}
-	// 数据清洗
-	cleanData := cleanData(request.DataList)
+	//if len(request.DataList) == 1 {
+	//	return &constant.CleaningAndRepairPositionMetaResponse{
+	//		DataList: request.DataList,
+	//	}, nil
+	//}
 
-	//helper.PointListOutput("clean", cleanData)
+	//fmt.Println("raw=============")
+	//helper.FmtPrintList(request.DataList)
+	// 数据清洗
+	cleanData := cleanData(request.DataList, request.PrePosition)
+
+	//fmt.Println("clean=============")
+	//helper.FmtPrintList(cleanData)
 
 	// 数据修复
 	repairData := repairData(cleanData)
 
-	//helper.PointListOutput("repair", repairData)
+	//fmt.Println("repair=============")
+	//helper.FmtPrintList(repairData)
 
 	return &constant.CleaningAndRepairPositionMetaResponse{
 		DataList: repairData,
@@ -327,10 +356,13 @@ func cleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMe
 	新数据存储
 */
 func saveCleanData(request *constant.SaveCleanDataRequest) {
+	//for _, v := range request.DataList {
+	//	sql.AddNewShipPosition(v)
+	//}
 	for _, v := range request.DataList {
 		str := strconv.FormatFloat(v.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(v.Latitude, 'f', -1, 64)
 		//if index != len(request.DataList)-1 {
-			str += "-"
+		str += "-"
 		//}
 		n, err := writer.WriteString(str)
 		if n != len(str) && err != nil {
@@ -346,9 +378,19 @@ func saveCleanData(request *constant.SaveCleanDataRequest) {
 	清洗程序
 */
 func DataClean() {
+	//shipIDs, _ := sql.GetShip()
+	//length := len(shipIDs)
+	//fmt.Println(shipIDs)
+	//for index, shipID := range shipIDs {
+	//	// clean and repair
+	//	cleanShip(shipID.MMSI)
+	//	percent := float64(100.0*index) / float64(length)
+	//	log.Println("Progress:", percent, "%")
+	//}
+
 	initWriter("clean_repair-trajectory")
 	defer func() {
 		file.Close()
 	}()
-	cleanShip(412596777)
+	cleanShip(111333222)
 }

@@ -101,6 +101,7 @@ type CulTrafficRequest struct {
 	EndTime   *Data // 结束时间
 	LotDivide int   // 经度划分数目
 	LatDivide int   // 纬度划分数目
+	Day       int
 }
 
 type CulTrafficResponse struct {
@@ -109,34 +110,36 @@ type CulTrafficResponse struct {
 }
 
 type AreaTraffic struct {
-	ShipMap               map[int]int   // 区域内船舶map		->	日流量
-	Traffic               int           // 区域内流量			->	日流量和
-	HourShipMap           []map[int]int // 区域内各小时船舶map	->	小时流量
-	HourTraffic           []int         // 区域内小时流量		->	小时流量和
-	SmallShipMap          map[int]int   // 区域内小船map		->	日小船流量
-	SmallShipTraffic      int           // 区域内小船流量		->	日小船流量和
-	HourSmallShipMap      []map[int]int // 区域内各小时小船map	->	小时小船流量
-	HourSmallShipTraffic  []int         // 区域内小时小船流量	->	小时小船流量和
-	BigShipMap            map[int]int   // 区域内大船map		->	日大船流量
-	BigShipTraffic        int           // 区域内大船流量		->	日大船流量和
-	HourBigShipMap        []map[int]int // 区域内各小时大船map	->	小时大船流量
-	HourBigShipTraffic    []int         // 区域内小时大船流量	->	小时大船流量和
-	Type0ShipMap          map[int]int   // 渔船map
-	Type0ShipTraffic      int           // 渔船交通量
-	HourType0ShipMap      []map[int]int // 渔船小时map
-	HourType0ShipTraffic  []int         // 渔船小时交通量
-	Type6xShipMap         map[int]int   // 客船map
-	Type6xShipTraffic     int           // 客船交通量
-	HourType6xShipMap     []map[int]int // 客船小时map
-	HourType6xShipTraffic []int         // 客船小时交通量
-	Type7xShipMap         map[int]int   // 货轮map
-	Type7xShipTraffic     int           // 货轮交通量
-	HourType7xShipMap     []map[int]int // 货轮小时map
-	HourType7xShipTraffic []int         // 货轮小时交通量
-	Type8xShipMap         map[int]int   // 油轮map
-	Type8xShipTraffic     int           // 油轮交通量
-	HourType8xShipMap     []map[int]int // 油轮小时map
-	HourType8xShipTraffic []int         // 油轮小时交通量
+	ShipMap                  map[int]int   // 区域内船舶map		->	日流量
+	Traffic                  int           // 区域内流量			->	日流量和
+	HourShipMap              []map[int]int // 区域内各小时船舶map	->	小时流量
+	HourTraffic              []int         // 区域内小时流量		->	小时流量和
+	SmallShipMap             map[int]int   // 区域内小船map		->	日小船流量
+	SmallShipTraffic         int           // 区域内小船流量		->	日小船流量和
+	HourSmallShipMap         []map[int]int // 区域内各小时小船map	->	小时小船流量
+	HourSmallShipTraffic     []int         // 区域内小时小船流量	->	小时小船流量和
+	BigShipMap               map[int]int   // 区域内大船map		->	日大船流量
+	BigShipTraffic           int           // 区域内大船流量		->	日大船流量和
+	HourBigShipMap           []map[int]int // 区域内各小时大船map	->	小时大船流量
+	HourBigShipTraffic       []int         // 区域内小时大船流量	->	小时大船流量和
+	Type0ShipMap             map[int]int   // 渔船map
+	Type0ShipTraffic         int           // 渔船交通量
+	HourType0ShipMap         []map[int]int // 渔船小时map
+	HourType0ShipTraffic     []int         // 渔船小时交通量
+	Type6xShipMap            map[int]int   // 客船map
+	Type6xShipTraffic        int           // 客船交通量
+	HourType6xShipMap        []map[int]int // 客船小时map
+	HourType6xShipTraffic    []int         // 客船小时交通量
+	Type7xShipMap            map[int]int   // 货轮map
+	Type7xShipTraffic        int           // 货轮交通量
+	HourType7xShipMap        []map[int]int // 货轮小时map
+	HourType7xShipTraffic    []int         // 货轮小时交通量
+	Type8xShipMap            map[int]int   // 油轮map
+	Type8xShipTraffic        int           // 油轮交通量
+	HourType8xShipMap        []map[int]int // 油轮小时map
+	HourType8xShipTraffic    []int         // 油轮小时交通量
+	OtherTypeShipTraffic     int
+	HourOtherTypeShipTraffic []int
 }
 
 type TrafficData struct {
@@ -147,6 +150,15 @@ type TrafficData struct {
 	HourType6xShipTrafficSum []int // 各区域小时客船流量相和
 	HourType7xShipTrafficSum []int // 各区域小时货轮流量相和
 	HourType8xShipTrafficSum []int // 各区域小时油轮流量相和
+	HourOtherTypeShipTraffic []int
+	Traffic                  int
+	SmallShipTraffic         int
+	BigShipTraffic           int
+	Type0ShipTraffic         int
+	Type6xShipTraffic        int
+	Type7xShipTraffic        int
+	Type8xShipTraffic        int
+	OtherTypeShipTraffic     int
 }
 
 type CulDensityRequest struct {
@@ -326,7 +338,8 @@ type DataSegmentationRequest struct {
 }
 
 type CleaningAndRepairPositionMetaRequest struct {
-	DataList []PositionMeta
+	DataList    []PositionMeta
+	PrePosition PositionMeta
 }
 
 type CleaningAndRepairPositionMetaResponse struct {

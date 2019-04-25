@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"log"
 	"math"
+	"math/rand"
 	"sort"
 	"testing"
 )
@@ -524,4 +525,14 @@ func Test_List(t *testing.T) {
 	for e := List.Front(); e != nil; e = e.Next() {
 		fmt.Println(e.Value)
 	}
+}
+
+func Test_TrafficOutput(t *testing.T) {
+	fmt.Print("[")
+	for i := 0; i < 10; i++ {
+		for j := 0; j < 10; j++ {
+			fmt.Print("[", i, ",", j, ",", rand.Int31n(5), "],")
+		}
+	}
+	fmt.Print("]")
 }

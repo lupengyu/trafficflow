@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/lupengyu/trafficflow/client/sql"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/dal/cache"
@@ -23,9 +24,11 @@ import (
 				大型船:	length >= 100m
 */
 func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTrafficResponse, err error) {
+	fmt.Println("start traffic")
 	// 查询时间段内的数据
 	rows, err := sql.GetPositionWithDuration(request.StartTime, request.EndTime)
 	if err != nil {
+		fmt.Println("sql.GetPositionWithDuration error")
 		return nil, err
 	}
 	defer func() {
@@ -331,6 +334,209 @@ func CulTraffic(request *constant.CulTrafficRequest) (response *constant.CulTraf
 
 	// 输出结果
 	log.Println("Rows:", index, "Miss:", miss)
+	return &constant.CulTrafficResponse{
+		AreaTraffics: areaTraffic,
+		TrafficData:  trafficData,
+	}, nil
+}
+
+func CulNewTraffic(request *constant.CulTrafficRequest) (response *constant.CulTrafficResponse, err error) {
+	trafficData := &constant.TrafficData{
+		HourTrafficSum:           make([]int, 24),
+		HourBigShipTrafficSum:    make([]int, 24),
+		HourSmallShipTrafficSum:  make([]int, 24),
+		HourType0ShipTrafficSum:  make([]int, 24),
+		HourType6xShipTrafficSum: make([]int, 24),
+		HourType7xShipTrafficSum: make([]int, 24),
+		HourType8xShipTrafficSum: make([]int, 24),
+		HourOtherTypeShipTraffic: make([]int, 24),
+	}
+	var areaTraffic [][]constant.AreaTraffic
+	for i := 0; i < request.LotDivide; i += 1 {
+		tmp := make([]constant.AreaTraffic, request.LatDivide)
+		areaTraffic = append(areaTraffic, tmp)
+		for j := 0; j < request.LatDivide; j += 1 {
+			// ship
+			areaTraffic[i][j].ShipMap = make(map[int]int)
+			areaTraffic[i][j].HourShipMap = make([]map[int]int, 24)
+			for k := 0; k < 24; k += 1 {
+				areaTraffic[i][j].HourShipMap[k] = make(map[int]int)
+			}
+			areaTraffic[i][j].HourTraffic = make([]int, 24)
+			// small ship
+			areaTraffic[i][j].SmallShipMap = make(map[int]int)
+			areaTraffic[i][j].HourSmallShipMap = make([]map[int]int, 24)
+			for k := 0; k < 24; k += 1 {
+				areaTraffic[i][j].HourSmallShipMap[k] = make(map[int]int)
+			}
+			areaTraffic[i][j].HourSmallShipTraffic = make([]int, 24)
+			// big ship
+			areaTraffic[i][j].BigShipMap = make(map[int]int)
+			areaTraffic[i][j].HourBigShipMap = make([]map[int]int, 24)
+			for k := 0; k < 24; k += 1 {
+				areaTraffic[i][j].HourBigShipMap[k] = make(map[int]int)
+			}
+			areaTraffic[i][j].HourBigShipTraffic = make([]int, 24)
+			// type 0 ship
+			areaTraffic[i][j].Type0ShipMap = make(map[int]int)
+			areaTraffic[i][j].HourType0ShipMap = make([]map[int]int, 24)
+			for k := 0; k < 24; k += 1 {
+				areaTraffic[i][j].HourType0ShipMap[k] = make(map[int]int)
+			}
+			areaTraffic[i][j].HourType0ShipTraffic = make([]int, 24)
+			// type 6x ship
+			areaTraffic[i][j].Type6xShipMap = make(map[int]int)
+			areaTraffic[i][j].HourType6xShipMap = make([]map[int]int, 24)
+			for k := 0; k < 24; k += 1 {
+				areaTraffic[i][j].HourType6xShipMap[k] = make(map[int]int)
+			}
+			areaTraffic[i][j].HourType6xShipTraffic = make([]int, 24)
+			// type 7x ship
+			areaTraffic[i][j].Type7xShipMap = make(map[int]int)
+			areaTraffic[i][j].HourType7xShipMap = make([]map[int]int, 24)
+			for k := 0; k < 24; k += 1 {
+				areaTraffic[i][j].HourType7xShipMap[k] = make(map[int]int)
+			}
+			areaTraffic[i][j].HourType7xShipTraffic = make([]int, 24)
+			// type 8x ship
+			areaTraffic[i][j].Type8xShipMap = make(map[int]int)
+			areaTraffic[i][j].HourType8xShipMap = make([]map[int]int, 24)
+			for k := 0; k < 24; k += 1 {
+				areaTraffic[i][j].HourType8xShipMap[k] = make(map[int]int)
+			}
+			areaTraffic[i][j].HourType8xShipTraffic = make([]int, 24)
+			areaTraffic[i][j].HourOtherTypeShipTraffic = make([]int, 24)
+		}
+	}
+
+	shipIDs, _ := sql.GetShip()
+	length := len(shipIDs)
+	for index, shipID := range shipIDs {
+		// clean and repair
+		// 单船交通量统计
+		shipPositions, err := sql.GetNewPositionWithShipIDWithDuration(shipID.MMSI, request.StartTime, request.EndTime)
+		if err != nil {
+			fmt.Println("sql.GetNewPositionWithShipIDWithDuration error")
+			return nil, err
+		}
+		// 获取船舶船体数据
+		shipMap := 0
+		shipDayMap := make([]int, request.Day)
+		shipHourMap := make([][]int, request.Day)
+		for i := 0; i < request.Day; i += 1 {
+			shipDayMap[i] = 0
+			shipHourMap[i] = make([]int, 24)
+			for j := 0; j < 24; j++ {
+				shipHourMap[i][j] = 0
+			}
+		}
+		shipInfo := cache.GetShipInfo(shipID.MMSI)
+		for _, pos := range shipPositions {
+			if pos.SOG < constant.StaticShip {
+				continue
+			}
+			longitudeArea := helper.LongitudeArea(pos.Longitude, request.LotDivide)
+			latitudeArea := helper.LatitudeArea(pos.Latitude, request.LatDivide)
+			if longitudeArea == -1 || latitudeArea == -1 {
+				continue
+			}
+			if pos.Hour > 23 {
+				continue
+			}
+			nowTime := &constant.Data{
+				Year:   pos.Year,
+				Month:  pos.Month,
+				Day:    pos.Day,
+				Hour:   pos.Hour,
+				Minute: pos.Minute,
+				Second: pos.Second,
+			}
+			diff := helper.TimeDeviation(nowTime, request.StartTime)
+			day := diff / 86400
+			hour := (diff % 86400) / 3600
+			nowPosition := longitudeArea*request.LatDivide + latitudeArea + 1
+			if shipMap != nowPosition {
+				shipMap = nowPosition
+				// 添加总记录
+				trafficData.Traffic += 1
+				if shipInfo.Length != 0 && shipInfo.Length != 1022 {
+					if shipInfo.Length >= constant.BigShipLength {
+						trafficData.BigShipTraffic += 1
+					} else {
+						trafficData.SmallShipTraffic += 1
+					}
+				}
+				if shipInfo.ShipType == 0 {
+					trafficData.Type0ShipTraffic += 1
+				} else if shipInfo.ShipType/10 == 6 {
+					trafficData.Type6xShipTraffic += 1
+				} else if shipInfo.ShipType/10 == 7 {
+					trafficData.Type7xShipTraffic += 1
+				} else if shipInfo.ShipType/10 == 8 {
+					trafficData.Type8xShipTraffic += 1
+				} else {
+					trafficData.OtherTypeShipTraffic += 1
+				}
+			}
+			if shipDayMap[day] != nowPosition {
+				shipDayMap[day] = nowPosition
+				// 添加天记录
+				areaTraffic[longitudeArea][latitudeArea].Traffic += 1
+				if shipInfo.Length != 0 && shipInfo.Length != 1022 {
+					if shipInfo.Length >= constant.BigShipLength {
+						areaTraffic[longitudeArea][latitudeArea].BigShipTraffic += 1
+						areaTraffic[longitudeArea][latitudeArea].HourBigShipTraffic[hour] += 1
+					} else {
+						areaTraffic[longitudeArea][latitudeArea].SmallShipTraffic += 1
+						areaTraffic[longitudeArea][latitudeArea].HourSmallShipTraffic[hour] += 1
+					}
+				}
+				if shipInfo.ShipType == 0 {
+					areaTraffic[longitudeArea][latitudeArea].Type0ShipTraffic += 1
+					areaTraffic[longitudeArea][latitudeArea].HourType0ShipTraffic[hour] += 1
+				} else if shipInfo.ShipType/10 == 6 {
+					areaTraffic[longitudeArea][latitudeArea].Type6xShipTraffic += 1
+					areaTraffic[longitudeArea][latitudeArea].HourType6xShipTraffic[hour] += 1
+				} else if shipInfo.ShipType/10 == 7 {
+					areaTraffic[longitudeArea][latitudeArea].Type7xShipTraffic += 1
+					areaTraffic[longitudeArea][latitudeArea].HourType7xShipTraffic[hour] += 1
+				} else if shipInfo.ShipType/10 == 8 {
+					areaTraffic[longitudeArea][latitudeArea].Type8xShipTraffic += 1
+					areaTraffic[longitudeArea][latitudeArea].HourType8xShipTraffic[hour] += 1
+				} else {
+					areaTraffic[longitudeArea][latitudeArea].OtherTypeShipTraffic += 1
+					areaTraffic[longitudeArea][latitudeArea].HourOtherTypeShipTraffic[hour] += 1
+				}
+			}
+			if shipHourMap[day][hour] != nowPosition {
+				shipHourMap[day][hour] = nowPosition
+				// 添加小时记录
+				trafficData.HourTrafficSum[hour] += 1
+				areaTraffic[longitudeArea][latitudeArea].HourTraffic[hour] += 1
+				if shipInfo.Length != 0 && shipInfo.Length != 1022 {
+					if shipInfo.Length >= constant.BigShipLength {
+						trafficData.HourBigShipTrafficSum[hour] += 1
+					} else {
+						trafficData.HourSmallShipTrafficSum[hour] += 1
+					}
+				}
+				if shipInfo.ShipType == 0 {
+					trafficData.HourType0ShipTrafficSum[hour] += 1
+				} else if shipInfo.ShipType/10 == 6 {
+					trafficData.HourType6xShipTrafficSum[hour] += 1
+				} else if shipInfo.ShipType/10 == 7 {
+					trafficData.HourType7xShipTrafficSum[hour] += 1
+				} else if shipInfo.ShipType/10 == 8 {
+					trafficData.HourType8xShipTrafficSum[hour] += 1
+				} else {
+					trafficData.HourOtherTypeShipTraffic[hour] += 1
+				}
+			}
+		}
+		percent := float64(100.0*index) / float64(length)
+		log.Println("Progress:", percent, "%")
+	}
+
 	return &constant.CulTrafficResponse{
 		AreaTraffics: areaTraffic,
 		TrafficData:  trafficData,

@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"fmt"
 	"github.com/cnkei/gospline"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/dal/cache"
@@ -440,15 +439,14 @@ func MaxRate(length int, v float64) float64 {
 
 func MaxAcceleration(length int, maxSpeed float64) float64 {
 	maxSpeed = maxSpeed * 1.852 / 3.6
-	t := 10.0 * float64(length) / maxSpeed
-	return maxSpeed / t
+	return math.Pow(maxSpeed, 2) / float64(20*length)
 }
 
 func movingAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
 	if prePosition.Longitude == position.Longitude &&
 		prePosition.Latitude == position.Latitude &&
 		prePosition.SOG > 2 {
-		fmt.Println("moving", prePosition, position) // TODO: remove
+		//fmt.Println("moving", prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -477,7 +475,7 @@ func driftAvailable(position constant.PositionMeta, prePosition constant.Positio
 	})
 	shipInfo := cache.GetShipInfo(position.MMSI)
 	a := MaxAcceleration(shipInfo.Length, 16.0)
-	maxV := math.Min(16.0, prePosition.SOG+float64(diff)*a) * 1.852 / 3.6
+	maxV := (prePosition.SOG + float64(diff)*a) * 1.852 / 3.6
 	D := PositionSpacing(&constant.Position{
 		Latitude:  prePosition.Latitude,
 		Longitude: prePosition.Longitude,
@@ -486,8 +484,8 @@ func driftAvailable(position constant.PositionMeta, prePosition constant.Positio
 		Longitude: position.Longitude,
 	})
 	acturalV := D / float64(diff)
-	if acturalV > maxV {
-		fmt.Println("drift", acturalV, maxV, prePosition, position) // TODO: remove
+	if acturalV > ((maxV + prePosition.SOG) / 2) {
+		//fmt.Println("drift", acturalV, maxV, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -512,7 +510,7 @@ func accelerationAvailable(position constant.PositionMeta, prePosition constant.
 	shipInfo := cache.GetShipInfo(position.MMSI)
 	a := MaxAcceleration(shipInfo.Length, 16.0)
 	if position.SOG > prePosition.SOG+float64(diff)*a {
-		fmt.Println("acceleration", position.SOG, prePosition.SOG+float64(diff)*a, prePosition, position) // TODO: remove
+		//fmt.Println("acceleration", position.SOG, prePosition.SOG+float64(diff)*a, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -538,10 +536,11 @@ func rateAvailable(position constant.PositionMeta, prePosition constant.Position
 	})
 	shipInfo := cache.GetShipInfo(position.MMSI)
 	a := MaxAcceleration(shipInfo.Length, 16.0)
-	maxV := math.Min(16.0, prePosition.SOG+float64(diff)*a) * 1.852 / 3.6
-	maxRate := MaxRate(shipInfo.Length, maxV)
+	maxV := (prePosition.SOG + float64(diff)*a) * 1.852 / 3.6
+	V := (maxV + prePosition.SOG) / 2
+	maxRate := MaxRate(shipInfo.Length, V)
 	if absRate > float64(diff)*maxRate {
-		fmt.Println("rate", absRate, float64(diff)*maxRate, prePosition, position) // TODO: remove
+		//fmt.Println("rate", absRate, float64(diff)*maxRate, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
