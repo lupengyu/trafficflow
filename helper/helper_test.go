@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"bufio"
 	"container/list"
 	"fmt"
 	"github.com/cnkei/gospline"
@@ -10,7 +11,9 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"sort"
+	"strconv"
 	"testing"
 )
 
@@ -535,4 +538,83 @@ func Test_TrafficOutput(t *testing.T) {
 		}
 	}
 	fmt.Print("]")
+}
+
+func Test_AvailableData(t *testing.T) {
+	file, err := os.Create("data/create.txt")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer func() {
+		file.Close()
+	}()
+	file.Sync()
+	writer := bufio.NewWriter(file)
+	data := &AvailableDataType{
+		Longitude:118.080862,
+		Latitude:24.487965,
+		SOG:0.1,
+		COG:350,
+		Length:110,
+	}
+	for i := 0; i < 10; i++ {
+		data.VMin = 1
+		data.VMax = 3
+		data.RateTurn = 0.5
+		str := strconv.FormatFloat(data.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(data.Latitude, 'f', -1, 64)
+		n, err := writer.WriteString(str + "\r\n")
+		if n != len(str) && err != nil {
+			log.Println(err)
+		}
+		writer.Flush()
+
+		fmt.Println("=============")
+		fmt.Println(data)
+		data = AvailableDataTest(data, 10)
+		fmt.Println(data)
+	}
+}
+
+/*
+	118.07814474308265,24.48793123327711,5.3679111111111135,239.9249450114566
+	118.07790359198313,24.487804144517256,5.607361616161619,232.57263588755245->118.07790359198313,24.487804144517256,5.607361616161619,224.57263588755245
+
+	118.09267189875042,24.440384238118966,8.600492929292939,153.03150875933466
+	118.09286850853842,24.440032467273255,8.480767676767686,154.17577834900646->118.09286850853842,24.440032467273255,8.480767676767686,177.17577834900646
+ */
+
+ func Test_1(t *testing.T) {
+	 //Vnm := (5.3679111111111135 + 5.607361616161619) / 2
+	 //maxRate := MaxRate(110, Vnm)
+	 //fmt.Println("zhang rate:", maxRate)
+	 //
+	 //a := MaxAcceleration(110, 16.0)
+	 //preV := (5.3679111111111135 * 1.852) / 3.6
+	 //maxV := preV + float64(10)*a
+	 //V := (maxV + preV) / 2
+	 //Vnm = V * 3.6 / 1.852
+	 //maxRate = MaxRate(110, Vnm)
+	 //fmt.Println("my rate:", maxRate)
+
+	 Vnm := (8.600492929292939 + 8.480767676767686) / 2
+	 maxRate := MaxRate(110, Vnm)
+	 fmt.Println("zhang rate:", maxRate)
+
+	 a := MaxAcceleration(110, 16.0)
+	 preV := (8.600492929292939 * 1.852) / 3.6
+	 maxV := preV + float64(10)*a
+	 V := (maxV + preV) / 2
+	 Vnm = V * 3.6 / 1.852
+	 maxRate = MaxRate(110, Vnm)
+	 fmt.Println("my rate:", maxRate)
+ }
+
+ //118.07376715856918,24.482426457322347,10.156921212121214,199.4075012994731
+ //118.07298950337592,24.482551247981604,10.03719595959596,198.05470218805002
+func Test_2(t *testing.T) {
+	endPosition := CulSecondPointPosition(&constant.Position{Latitude: 24.482426457322347, Longitude: 118.07376715856918}, 70, 150)
+	fmt.Println(endPosition)
+	//&{118.07349571696271 24.481998576958674}
+	//&{118.07298950337592 24.482551247981604}
 }

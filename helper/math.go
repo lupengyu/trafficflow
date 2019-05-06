@@ -1,10 +1,12 @@
 package helper
 
 import (
+	"fmt"
 	"github.com/cnkei/gospline"
 	"github.com/lupengyu/trafficflow/constant"
 	"github.com/lupengyu/trafficflow/dal/cache"
 	"math"
+	"math/rand"
 	"sort"
 	"time"
 )
@@ -446,7 +448,7 @@ func movingAvailable(position constant.PositionMeta, prePosition constant.Positi
 	if prePosition.Longitude == position.Longitude &&
 		prePosition.Latitude == position.Latitude &&
 		prePosition.SOG > 2 {
-		//fmt.Println("moving", prePosition, position) // TODO: remove
+		fmt.Println("moving", prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -475,7 +477,9 @@ func driftAvailable(position constant.PositionMeta, prePosition constant.Positio
 	})
 	shipInfo := cache.GetShipInfo(position.MMSI)
 	a := MaxAcceleration(shipInfo.Length, 16.0)
-	maxV := (prePosition.SOG + float64(diff)*a) * 1.852 / 3.6
+	preV := (prePosition.SOG * 1.852) / 3.6
+	maxV := preV + float64(diff)*a
+	V := (maxV + preV) / 2
 	D := PositionSpacing(&constant.Position{
 		Latitude:  prePosition.Latitude,
 		Longitude: prePosition.Longitude,
@@ -484,8 +488,8 @@ func driftAvailable(position constant.PositionMeta, prePosition constant.Positio
 		Longitude: position.Longitude,
 	})
 	acturalV := D / float64(diff)
-	if acturalV > ((maxV + prePosition.SOG) / 2) {
-		//fmt.Println("drift", acturalV, maxV, prePosition, position) // TODO: remove
+	if acturalV > V {
+		fmt.Println("drift", acturalV, maxV, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -510,7 +514,7 @@ func accelerationAvailable(position constant.PositionMeta, prePosition constant.
 	shipInfo := cache.GetShipInfo(position.MMSI)
 	a := MaxAcceleration(shipInfo.Length, 16.0)
 	if position.SOG > prePosition.SOG+float64(diff)*a {
-		//fmt.Println("acceleration", position.SOG, prePosition.SOG+float64(diff)*a, prePosition, position) // TODO: remove
+		fmt.Println("acceleration", position.SOG, prePosition.SOG+float64(diff)*a, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -536,11 +540,13 @@ func rateAvailable(position constant.PositionMeta, prePosition constant.Position
 	})
 	shipInfo := cache.GetShipInfo(position.MMSI)
 	a := MaxAcceleration(shipInfo.Length, 16.0)
-	maxV := (prePosition.SOG + float64(diff)*a) * 1.852 / 3.6
-	V := (maxV + prePosition.SOG) / 2
-	maxRate := MaxRate(shipInfo.Length, V)
+	preV := (prePosition.SOG * 1.852) / 3.6
+	maxV := preV + float64(diff)*a
+	V := (maxV + preV) / 2
+	Vnm := V * 3.6 / 1.852
+	maxRate := MaxRate(shipInfo.Length, Vnm)
 	if absRate > float64(diff)*maxRate {
-		//fmt.Println("rate", absRate, float64(diff)*maxRate, prePosition, position) // TODO: remove
+		fmt.Println("rate", absRate, float64(diff)*maxRate, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -560,4 +566,61 @@ func RateRange(now float64, pre float64) float64 {
 		return rateRange - 360.0
 	}
 	return rateRange
+}
+
+type AvailableDataType struct {
+	SOG       float64
+	COG       float64
+	Longitude float64
+	Latitude  float64
+	Length    int
+	VMin      int
+	VMax      int
+	RateTurn  float64
+}
+
+func AvailableDataTest(data *AvailableDataType, Time int) *AvailableDataType {
+	a := MaxAcceleration(data.Length, 16.0)
+	preV := (data.SOG * 1.852) / 3.6
+	maxVPrecent := preV + float64(Time)*a*float64(rand.Intn(data.VMax - data.VMin) + data.VMin)*0.1
+	vnm := maxVPrecent * 3.6 / 1.852
+	VPrecent := (maxVPrecent + preV) / 2
+	VPrecentnm := VPrecent * 3.6 / 1.852
+	maxRatePrecent := MaxRate(data.Length, VPrecentnm)*data.RateTurn
+	endPosition := CulSecondPointPosition(&constant.Position{Latitude: data.Latitude, Longitude: data.Longitude}, VPrecent*float64(Time), data.COG)
+	return &AvailableDataType{
+		SOG:vnm,
+		COG:data.COG-maxRatePrecent*float64(Time),
+		Longitude:endPosition.Longitude,
+		Latitude:endPosition.Latitude,
+		Length:data.Length,
+	}
+}
+
+func AvailableData(prePosition constant.PositionMeta, length int, time int, precent float64) {
+	a := MaxAcceleration(length, 16.0)
+	preV := (prePosition.SOG * 1.852) / 3.6
+	maxV := preV + float64(time)*a
+	maxVPrecent := preV + float64(time)*a*precent
+	v := maxV * 3.6 / 1.852
+	vnm := maxVPrecent * 3.6 / 1.852
+	V := (maxV + preV) / 2
+	VPrecent := (maxVPrecent + preV) / 2
+	Vnm := V * 3.6 / 1.852
+	VPrecentnm := VPrecent * 3.6 / 1.852
+	maxRate := MaxRate(length, Vnm)
+	maxRatePrecent := MaxRate(length, VPrecentnm)
+	fmt.Println("Pre v km:", preV)
+	fmt.Println("Max a   :", a)
+	fmt.Println("Max v km:", maxV)
+	fmt.Println("Max v nm:", v)
+	fmt.Println("Max v nm precent=============:", vnm)
+	fmt.Println("===================")
+	fmt.Println("Max rate:", maxRate)
+	fmt.Println("Max rate precent=============:", maxRatePrecent*float64(time))
+	fmt.Println("===================")
+	fmt.Println("Max L   :", V*float64(time))
+	fmt.Println("Max L   precent=============:", VPrecent*float64(time))
+	endPosition := CulSecondPointPosition(&constant.Position{Latitude: prePosition.Latitude, Longitude: prePosition.Longitude}, VPrecent, prePosition.COG)
+	fmt.Println("Position:                   :", endPosition)
 }

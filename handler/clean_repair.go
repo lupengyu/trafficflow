@@ -360,11 +360,26 @@ func saveCleanData(request *constant.SaveCleanDataRequest) {
 	//	sql.AddNewShipPosition(v)
 	//}
 	for _, v := range request.DataList {
-		str := strconv.FormatFloat(v.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(v.Latitude, 'f', -1, 64)
-		//if index != len(request.DataList)-1 {
-		str += "-"
-		//}
-		n, err := writer.WriteString(str)
+		nowTime := &constant.Data{
+			Year:   v.Year,
+			Month:  v.Month,
+			Day:    v.Day,
+			Hour:   v.Hour,
+			Minute: v.Minute,
+			Second: v.Second,
+		}
+		preTime := &constant.Data{
+			Year:   2019,
+			Month:  1,
+			Day:    1,
+			Hour:   0,
+			Minute: 0,
+			Second: 0,
+		}
+		diff := helper.TimeDeviation(nowTime, preTime)
+		str := strconv.FormatFloat(v.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(v.Latitude, 'f', -1, 64) +
+			"," + strconv.FormatFloat(v.SOG, 'f', -1, 64) + "," + strconv.FormatFloat(v.COG, 'f', -1, 64) + "," + strconv.FormatInt(diff, 10)
+		n, err := writer.WriteString(str + "\r\n")
 		if n != len(str) && err != nil {
 			log.Println(err)
 		}
@@ -388,9 +403,9 @@ func DataClean() {
 	//	log.Println("Progress:", percent, "%")
 	//}
 
-	initWriter("clean_repair-trajectory")
+	initWriter("clean_repair-trajectory_new_final")
 	defer func() {
 		file.Close()
 	}()
-	cleanShip(111333222)
+	cleanShip(412596777)
 }
