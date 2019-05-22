@@ -120,7 +120,6 @@ func CulDoorLine(request *constant.CulDoorLineRequest) (response *constant.CulDo
 	}, nil
 }
 
-
 func CulNewDoorLine(request *constant.CulDoorLineRequest) (response *constant.CulDoorLineResponse, err error) {
 	doorLine, err := os.Create("data/doorline.txt")
 	if err != nil {
@@ -154,14 +153,14 @@ func CulNewDoorLine(request *constant.CulDoorLineRequest) (response *constant.Cu
 			continue
 		}
 		prePosition := &constant.Position{
-			Longitude:shipPositions[0].Longitude,
-			Latitude:shipPositions[0].Latitude,
+			Longitude: shipPositions[0].Longitude,
+			Latitude:  shipPositions[0].Latitude,
 		}
 		deWeight := true
 		for _, pos := range shipPositions {
 			nowPosition := &constant.Position{
-				Longitude:pos.Longitude,
-				Latitude:pos.Latitude,
+				Longitude: pos.Longitude,
+				Latitude:  pos.Latitude,
 			}
 			if helper.IsLineInterSect(request.StartPosition, request.EndPosition, prePosition, nowPosition) == true {
 				cnt += 1

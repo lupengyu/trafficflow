@@ -175,12 +175,12 @@ func CulMeeting(request *constant.CulMeetingRequest) (response *constant.CulMeet
 							T := 1.1 * L
 							//fmt.Println(meetingIntersection.DCPA, meetingIntersection.TCPA)
 							uDCPA = helper.MeetingDangerUDCPA(a, b, S, T, meetingIntersection.Azimuth, meetingIntersection.DCPA)
-							uTCPA = helper.MeetingDangerUTCPA(a, b, S, T, azimuth, meetingIntersection.DCPA,
+							uTCPA = helper.MeetingDangerUTCPA(a, b, S, T, meetingIntersection.Azimuth, meetingIntersection.DCPA,
 								meetingIntersection.TCPA, meetingIntersection.VR)
 							uD = helper.MeetingDangerUD(a, b, S, T, azimuth, v2)
 						}
 					}
-					danger := uD*0.4 + uDCPA*0.25 + uTCPA*0.15 + uB*0.1 + uV*0.1
+					danger := uD*0.4 + uDCPA*uTCPA*0.4 + uB*0.1 + uV*0.1
 					if danger <= 0.2 {
 						I += 1
 					} else if danger <= 0.4 {

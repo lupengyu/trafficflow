@@ -47,8 +47,8 @@ func CreateRawData(fileName string) {
 		if len(strs) < 4 {
 			protect = true
 			str := string(line)
-			n, err := doorLineWriter.WriteString(str+"\r\n")
-			if n < 0  && err != nil {
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n < 0 && err != nil {
 				log.Println(err)
 			}
 			doorLineWriter.Flush()
@@ -57,8 +57,8 @@ func CreateRawData(fileName string) {
 		if protect == true {
 			protect = false
 			str := string(line)
-			n, err := doorLineWriter.WriteString(str+"\r\n")
-			if n < 0  && err != nil {
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n < 0 && err != nil {
 				log.Println(err)
 			}
 			doorLineWriter.Flush()
@@ -68,8 +68,8 @@ func CreateRawData(fileName string) {
 		if rand.Intn(100) > 20 {
 			str = string(line)
 		}
-		n, err := doorLineWriter.WriteString(str+"\r\n")
-		if n < 0  && err != nil {
+		n, err := doorLineWriter.WriteString(str + "\r\n")
+		if n < 0 && err != nil {
 			log.Println(err)
 		}
 		doorLineWriter.Flush()
@@ -77,7 +77,7 @@ func CreateRawData(fileName string) {
 }
 
 func CleanRawData(fileName string) {
-	doorLine, err := os.Create("data/cleandata.txt")
+	doorLine, err := os.Create("data/small/cleandata.txt")
 	if err != nil {
 		log.Println(err)
 		return
@@ -107,7 +107,7 @@ func CleanRawData(fileName string) {
 		if len(strs) < 4 {
 			if strs[0] == "XXXXXXXXX" {
 				rawData = append(rawData, constant.PositionMeta{
-					MMSI:      -1,
+					MMSI: -1,
 				})
 			}
 			continue
@@ -135,8 +135,8 @@ func CleanRawData(fileName string) {
 	tmp := 0
 	str := strconv.FormatFloat(preData.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(preData.Latitude, 'f', -1, 64) +
 		"," + strconv.FormatFloat(preData.SOG, 'f', -1, 64) + "," + strconv.FormatFloat(preData.COG, 'f', -1, 64)
-	n, err := doorLineWriter.WriteString(str+"\r\n")
-	if n < 0  && err != nil {
+	n, err := doorLineWriter.WriteString(str + "\r\n")
+	if n < 0 && err != nil {
 		log.Println(err)
 	}
 	doorLineWriter.Flush()
@@ -144,8 +144,8 @@ func CleanRawData(fileName string) {
 		data := rawData[i]
 		if data.MMSI == -1 {
 			str := "XXXXXXXXX"
-			n, err := doorLineWriter.WriteString(str+"\r\n")
-			if n < 0  && err != nil {
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n < 0 && err != nil {
 				log.Println(err)
 			}
 			doorLineWriter.Flush()
@@ -156,8 +156,8 @@ func CleanRawData(fileName string) {
 		data.Second = 10 + tmp
 		if helper.PositionAvailable(data, preData) == false {
 			str := "XXXXXXXXX"
-			n, err := doorLineWriter.WriteString(str+"\r\n")
-			if n < 0  && err != nil {
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n < 0 && err != nil {
 				log.Println(err)
 			}
 			doorLineWriter.Flush()
@@ -166,8 +166,8 @@ func CleanRawData(fileName string) {
 		} else {
 			str := strconv.FormatFloat(data.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(data.Latitude, 'f', -1, 64) +
 				"," + strconv.FormatFloat(data.SOG, 'f', -1, 64) + "," + strconv.FormatFloat(data.COG, 'f', -1, 64)
-			n, err := doorLineWriter.WriteString(str+"\r\n")
-			if n < 0  && err != nil {
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n < 0 && err != nil {
 				log.Println(err)
 			}
 			doorLineWriter.Flush()
@@ -179,7 +179,7 @@ func CleanRawData(fileName string) {
 }
 
 func ZhangCleanRawData(fileName string) {
-	doorLine, err := os.Create("data/zhangcleandata.txt")
+	doorLine, err := os.Create("data/small/zhangcleandata.txt")
 	if err != nil {
 		log.Println(err)
 		return
@@ -209,7 +209,7 @@ func ZhangCleanRawData(fileName string) {
 		if len(strs) < 4 {
 			if strs[0] == "XXXXXXXXX" {
 				rawData = append(rawData, constant.PositionMeta{
-					MMSI:      -1,
+					MMSI: -1,
 				})
 			}
 			continue
@@ -237,8 +237,8 @@ func ZhangCleanRawData(fileName string) {
 	tmp := 0
 	str := strconv.FormatFloat(preData.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(preData.Latitude, 'f', -1, 64) +
 		"," + strconv.FormatFloat(preData.SOG, 'f', -1, 64) + "," + strconv.FormatFloat(preData.COG, 'f', -1, 64)
-	n, err := doorLineWriter.WriteString(str+"\r\n")
-	if n < 0  && err != nil {
+	n, err := doorLineWriter.WriteString(str + "\r\n")
+	if n < 0 && err != nil {
 		log.Println(err)
 	}
 	doorLineWriter.Flush()
@@ -246,8 +246,8 @@ func ZhangCleanRawData(fileName string) {
 		data := rawData[i]
 		if data.MMSI == -1 {
 			str := "XXXXXXXXX"
-			n, err := doorLineWriter.WriteString(str+"\r\n")
-			if n < 0  && err != nil {
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n < 0 && err != nil {
 				log.Println(err)
 			}
 			doorLineWriter.Flush()
@@ -258,8 +258,8 @@ func ZhangCleanRawData(fileName string) {
 		data.Second = 10 + tmp
 		if PositionAvailable(data, preData) == false {
 			str := "XXXXXXXXX"
-			n, err := doorLineWriter.WriteString(str+"\r\n")
-			if n < 0  && err != nil {
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n < 0 && err != nil {
 				log.Println(err)
 			}
 			doorLineWriter.Flush()
@@ -268,8 +268,8 @@ func ZhangCleanRawData(fileName string) {
 		} else {
 			str := strconv.FormatFloat(data.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(data.Latitude, 'f', -1, 64) +
 				"," + strconv.FormatFloat(data.SOG, 'f', -1, 64) + "," + strconv.FormatFloat(data.COG, 'f', -1, 64)
-			n, err := doorLineWriter.WriteString(str+"\r\n")
-			if n < 0  && err != nil {
+			n, err := doorLineWriter.WriteString(str + "\r\n")
+			if n < 0 && err != nil {
 				log.Println(err)
 			}
 			doorLineWriter.Flush()
@@ -281,7 +281,7 @@ func ZhangCleanRawData(fileName string) {
 }
 
 func RepairCleanData(fileName string) {
-	doorLine, err := os.Create("data/cleandata_repair.txt")
+	doorLine, err := os.Create("data/small/cleandata_repair.txt")
 	if err != nil {
 		log.Println(err)
 		return
@@ -309,20 +309,20 @@ func RepairCleanData(fileName string) {
 		if len(line) == 0 {
 			break
 		}
-		duration := time.Duration(10 * index)*time.Second
+		duration := time.Duration(10*index) * time.Second
 		index += 1
 		resultTime := baseTime.Add(duration)
 		strs := strings.Split(string(line), ",")
 		if len(strs) < 4 {
 			if strs[0] == "XXXXXXXXX" {
 				rawData = append(rawData, constant.PositionMeta{
-					MMSI:      -1,
-					Year:      resultTime.Year(),
-					Month:     int(resultTime.Month()),
-					Day:       resultTime.Day(),
-					Hour:      resultTime.Hour(),
-					Minute:    resultTime.Minute(),
-					Second:    resultTime.Second(),
+					MMSI:   -1,
+					Year:   resultTime.Year(),
+					Month:  int(resultTime.Month()),
+					Day:    resultTime.Day(),
+					Hour:   resultTime.Hour(),
+					Minute: resultTime.Minute(),
+					Second: resultTime.Second(),
 				})
 			}
 			continue
@@ -450,8 +450,8 @@ func RepairCleanData(fileName string) {
 		fmt.Println(v)
 		str := strconv.FormatFloat(v.Longitude, 'f', -1, 64) + "," + strconv.FormatFloat(v.Latitude, 'f', -1, 64) +
 			"," + strconv.FormatFloat(v.SOG, 'f', -1, 64) + "," + strconv.FormatFloat(v.COG, 'f', -1, 64)
-		n, err := doorLineWriter.WriteString(str+"\r\n")
-		if n < 0  && err != nil {
+		n, err := doorLineWriter.WriteString(str + "\r\n")
+		if n < 0 && err != nil {
 			log.Println(err)
 		}
 		doorLineWriter.Flush()
@@ -516,7 +516,7 @@ func CulDeviation(createFile string, cleanFile string, repairFile string) {
 			if strs[0] == "XXXXXXXXX" {
 				sum += 1
 				cleanData = append(cleanData, constant.PositionMeta{
-					MMSI:      -1,
+					MMSI: -1,
 				})
 			}
 			continue
@@ -578,10 +578,10 @@ func CulDeviation(createFile string, cleanFile string, repairFile string) {
 		}
 		preData := createData[index]
 		nowData := repairData[index]
-		lonDeviation += math.Abs(preData.Longitude - nowData.Longitude) * 100 / preData.Longitude
-		lanDeviation += math.Abs(preData.Latitude - nowData.Latitude) * 100 / preData.Latitude
-		cogDeviation += math.Abs(preData.COG - nowData.COG) * 100 / preData.COG
-		sogDeviation += math.Abs(preData.SOG - nowData.SOG) * 100 / preData.SOG
+		lonDeviation += math.Abs(preData.Longitude-nowData.Longitude) * 100 / preData.Longitude
+		lanDeviation += math.Abs(preData.Latitude-nowData.Latitude) * 100 / preData.Latitude
+		cogDeviation += math.Abs(preData.COG-nowData.COG) * 100 / preData.COG
+		sogDeviation += math.Abs(preData.SOG-nowData.SOG) * 100 / preData.SOG
 	}
 	fmt.Println(len(createData), len(cleanData), len(repairData))
 	fmt.Println("need        :", need)

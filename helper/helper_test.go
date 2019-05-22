@@ -552,11 +552,11 @@ func Test_AvailableData(t *testing.T) {
 	file.Sync()
 	writer := bufio.NewWriter(file)
 	data := &AvailableDataType{
-		Longitude:118.080862,
-		Latitude:24.487965,
-		SOG:0.1,
-		COG:350,
-		Length:110,
+		Longitude: 118.080862,
+		Latitude:  24.487965,
+		SOG:       0.1,
+		COG:       350,
+		Length:    110,
 	}
 	for i := 0; i < 10; i++ {
 		data.VMin = 1
@@ -582,39 +582,280 @@ func Test_AvailableData(t *testing.T) {
 
 	118.09267189875042,24.440384238118966,8.600492929292939,153.03150875933466
 	118.09286850853842,24.440032467273255,8.480767676767686,154.17577834900646->118.09286850853842,24.440032467273255,8.480767676767686,177.17577834900646
- */
+*/
 
- func Test_1(t *testing.T) {
-	 //Vnm := (5.3679111111111135 + 5.607361616161619) / 2
-	 //maxRate := MaxRate(110, Vnm)
-	 //fmt.Println("zhang rate:", maxRate)
-	 //
-	 //a := MaxAcceleration(110, 16.0)
-	 //preV := (5.3679111111111135 * 1.852) / 3.6
-	 //maxV := preV + float64(10)*a
-	 //V := (maxV + preV) / 2
-	 //Vnm = V * 3.6 / 1.852
-	 //maxRate = MaxRate(110, Vnm)
-	 //fmt.Println("my rate:", maxRate)
+func Test_1(t *testing.T) {
+	//Vnm := (5.3679111111111135 + 5.607361616161619) / 2
+	//maxRate := MaxRate(110, Vnm)
+	//fmt.Println("zhang rate:", maxRate)
+	//
+	//a := MaxAcceleration(110, 16.0)
+	//preV := (5.3679111111111135 * 1.852) / 3.6
+	//maxV := preV + float64(10)*a
+	//V := (maxV + preV) / 2
+	//Vnm = V * 3.6 / 1.852
+	//maxRate = MaxRate(110, Vnm)
+	//fmt.Println("my rate:", maxRate)
 
-	 Vnm := (8.600492929292939 + 8.480767676767686) / 2
-	 maxRate := MaxRate(110, Vnm)
-	 fmt.Println("zhang rate:", maxRate)
+	Vnm := (8.600492929292939 + 8.480767676767686) / 2
+	maxRate := MaxRate(110, Vnm)
+	fmt.Println("zhang rate:", maxRate)
 
-	 a := MaxAcceleration(110, 16.0)
-	 preV := (8.600492929292939 * 1.852) / 3.6
-	 maxV := preV + float64(10)*a
-	 V := (maxV + preV) / 2
-	 Vnm = V * 3.6 / 1.852
-	 maxRate = MaxRate(110, Vnm)
-	 fmt.Println("my rate:", maxRate)
- }
+	a := MaxAcceleration(110, 16.0)
+	preV := (8.600492929292939 * 1.852) / 3.6
+	maxV := preV + float64(10)*a
+	V := (maxV + preV) / 2
+	Vnm = V * 3.6 / 1.852
+	maxRate = MaxRate(110, Vnm)
+	fmt.Println("my rate:", maxRate)
+}
 
- //118.07376715856918,24.482426457322347,10.156921212121214,199.4075012994731
- //118.07298950337592,24.482551247981604,10.03719595959596,198.05470218805002
+//118.07376715856918,24.482426457322347,10.156921212121214,199.4075012994731
+//118.07298950337592,24.482551247981604,10.03719595959596,198.05470218805002
 func Test_2(t *testing.T) {
 	endPosition := CulSecondPointPosition(&constant.Position{Latitude: 24.482426457322347, Longitude: 118.07376715856918}, 70, 150)
 	fmt.Println(endPosition)
 	//&{118.07349571696271 24.481998576958674}
 	//&{118.07298950337592 24.482551247981604}
+}
+
+func Test_Simulation1(t *testing.T) {
+	angle := 270.0 // 相对角度
+	L := 50.0      // 参照船船长
+	D := 500.0     // 距离
+	V := 4.0       // 速度
+	DCPA := 500.0
+	TCPA := 0.0
+	Vr := 2.0578 // 相对速度
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, angle, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, angle, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_Simulation21(t *testing.T) {
+	angle := 180.0 // 相对角度
+	L := 50.0      // 参照船船长
+	D := 500.0     // 距离
+	V := 4.0       // 速度
+	DCPA := 0.0
+	TCPA := 242.9779
+	Vr := 2.0578 // 相对速度
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, angle, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, angle, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_Simulation23(t *testing.T) {
+	angle := 0.0 // 相对角度
+	L := 50.0    // 参照船船长
+	D := 500.0   // 距离
+	V := 2.0     // 速度
+	DCPA := 0.0
+	TCPA := -242.9779
+	Vr := 2.0578 // 相对速度
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, angle, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, angle, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_Simulation31(t *testing.T) {
+	angle := 45.0 // 相对角度
+	L := 50.0     // 参照船船长
+	D := 707.11   // 距离
+	V := 16.0     // 速度
+	DCPA := 500.0
+	TCPA := 60.75
+	Vr := 8.2311 // 相对速度 1852
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 90.0, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 90, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_Simulation32(t *testing.T) {
+	angle := 90.0 // 相对角度
+	L := 50.0     // 参照船船长
+	D := 500.0    // 距离
+	V := 16.0     // 速度
+	DCPA := 500.0
+	TCPA := 0.0
+	Vr := 8.2311 // 相对速度
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, angle, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, angle, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_Simulation33(t *testing.T) {
+	angle := 135.0 // 相对角度
+	L := 50.0      // 参照船船长
+	D := 707.11    // 距离
+	V := 16.0      // 速度
+	DCPA := 500.0
+	TCPA := -242.9779
+	Vr := 8.2311 // 相对速度 1852
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 90, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 90, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_Simulation41(t *testing.T) {
+	l := math.Sqrt(math.Pow(1000.0+750*math.Sqrt(2), 2.0) + math.Pow(250*math.Sqrt(2), 2.0))
+	T := math.Atan(250 * math.Sqrt(2) / (1000.0 + 750*math.Sqrt(2)))
+	fmt.Println(l, T*180.0/math.Pi)
+	angle := 9.735610317245346 // 相对角度
+	L := 50.0                  // 参照船船长
+	D := 2090.7702751760276    // 距离
+	V := 14.78                 // 速度
+	DCPA := 500.0
+	TCPA := 242.98
+	Vr := 7.5952 // 相对速度
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 315, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 315, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_Simulation42(t *testing.T) {
+	//response := &constant.MeetingIntersection{}
+	//V0 := 8.0
+	//C0 := 0.0
+	//Vt := 8.0
+	//Ct := 225.0
+	//D := 500.0
+	//q := 0.0
+	//Vr := math.Sqrt(math.Pow(V0, 2) + math.Pow(Vt, 2) - 2*V0*Vt*cos(C0-Ct)) * 1852.0 / 3600.0
+	//k := Vt / V0
+	//dH := C0 - Ct
+	//Cr := ArcCos((1 - k*cos(dH)) / (math.Sqrt(1 - 2*k*cos(dH) + math.Pow(k, 2))))
+	//response.DCPA = D * sin(Cr-q)
+	//response.TCPA = D * cos(Cr-q) / Vr
+	//response.VR = Vr
+	//fmt.Println(response.DCPA, response.TCPA, response.VR)
+
+	angle := 0.0 // 相对角度
+	L := 50.0    // 参照船船长
+	D := 1207.11 // 距离
+	V := 14.78   // 速度
+	DCPA := 500.0
+	TCPA := 121.62
+	Vr := 7.5952 // 相对速度
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 315, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 315, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_Simulation43(t *testing.T) {
+	angle := 270.0 // 相对角度
+	L := 50.0      // 参照船船长
+	D := 638.22    // 距离
+	V := 14.78     // 速度
+	DCPA := 500.0
+	TCPA := -50.322921994571
+	Vr := 7.5952 // 相对速度
+	rDCPA := MeetingDangerUDCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 315, DCPA)
+	rTCPA := MeetingDangerUTCPA(5*L, 2.5*L, 0.75*L, 1.1*L, 315, DCPA, TCPA, Vr)
+	rD := MeetingDangerUD(5*L, 2.5*L, 0.75*L, 1.1*L, angle, D)
+	rQ := MeetingDangerUB(angle)
+	rV := MeetingDangerUV(V)
+	fmt.Println("rDCPA:", rDCPA)
+	fmt.Println("rTCPA:", rTCPA)
+	fmt.Println("rD   :", rD)
+	fmt.Println("rQ   :", rQ)
+	fmt.Println("rV   :", rV)
+	fmt.Println("Score:", rD*0.4+rDCPA*rTCPA*0.4+rQ*0.1+rV*0.1)
+}
+
+func Test_test(t *testing.T) {
+	fmt.Println(ArcSin(1.0 / 2.613125929752753))
+}
+
+func Test_driftAvailable(t *testing.T) {
+	nowV := 8.0 * 1852.0 / 3600.0
+	endV := 8.0 * 1852.0 / 3600.0
+	maxA := MaxAcceleration(110, 16.0)
+	minA := MinAcceleration(110, 16.0)
+	diff := 10.0
+	maxL := nowV*diff + 0.5*maxA*diff*diff
+	maxV := nowV + maxA*diff
+	time := (endV - nowV - minA*diff) / (maxA - minA)
+	l := (maxV - endV) * (diff - time) * 0.5
+	L := maxL - l
+	fmt.Println(maxL, l, L, time, maxA, minA)
+}
+
+func Test_rateAvailable(t *testing.T) {
+	nowV := 8.0 * 1852.0 / 3600.0
+	endV := 8.0 * 1852.0 / 3600.0
+	maxA := MaxAcceleration(110, 16.0)
+	minA := MinAcceleration(110, 16.0)
+	diff := 10.0
+	maxL := nowV*diff + 0.5*maxA*diff*diff
+	maxV := nowV + maxA*diff
+	time := (endV - nowV - minA*diff) / (maxA - minA)
+	l := (maxV - endV) * (diff - time) * 0.5
+	L := maxL - l
+	maxW := 360.0 * L / (2 * math.Pi * 110.0)
+	fmt.Println(maxW)
 }

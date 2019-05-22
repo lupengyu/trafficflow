@@ -286,7 +286,7 @@ func culMeeting() {
 			StartTime: &constant.Data{
 				Year:   2019,
 				Month:  1,
-				Day:    1,
+				Day:    2,
 				Hour:   0,
 				Minute: 0,
 				Second: 0,
@@ -294,7 +294,7 @@ func culMeeting() {
 			EndTime: &constant.Data{
 				Year:   2019,
 				Month:  1,
-				Day:    1,
+				Day:    2,
 				Hour:   23,
 				Minute: 59,
 				Second: 0,
@@ -929,15 +929,15 @@ func createRawData() {
 }
 
 func cleanRawData() {
-	handler.CleanRawData("rawdata.txt")
+	handler.CleanRawData("small/rawdata.txt")
 }
 
 func repairCleanData() {
-	handler.RepairCleanData("cleandata.txt")
+	handler.RepairCleanData("small/cleandata.txt")
 }
 
 func zhangCleanRawData() {
-	handler.ZhangCleanRawData("rawdata.txt")
+	handler.ZhangCleanRawData("small/rawdata.txt")
 }
 
 func getShipRawData() {
@@ -982,7 +982,12 @@ func getShipRawData() {
 }
 
 func culDeviation() {
-	handler.CulDeviation("create(true).txt", "cleandata.txt", "cleandata_repair.txt")
+	//handler.CulDeviation("create(true).txt", "cleandata.txt", "cleandata_repair.txt")
+	handler.CulDeviation("small/create.txt", "small/cleandata.txt", "small/cleandata_repair.txt")
+}
+
+func soleimani() {
+	handler.Soleimani("small/create.txt", "small/testfile.txt")
 }
 
 func main() {
@@ -1003,7 +1008,7 @@ func main() {
 
 	//culSpacing()
 
-	//culMeeting()
+	culMeeting()
 
 	//earlyWarning()
 
@@ -1015,11 +1020,13 @@ func main() {
 
 	//createData()
 	//createRawData()
-	//cleanRawData()
+	//cleanRawData() // 清洗原始数据
 	//repairCleanData()
-	//zhangCleanRawData()
+	zhangCleanRawData()
 	//dataAvailable()
 	//culDeviation()
 
 	//getShipRawData()
+
+	//soleimani()
 }

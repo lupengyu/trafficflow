@@ -29,7 +29,10 @@ func initWriter(fileName string) {
 }
 
 func cleanShip(shipID int) {
+	// 从数据库中读取数据
 	positions, err := sql.GetPositionWithShipID(shipID)
+	// 从文件中读取数据
+	//positions, err := helper.GetPositionFromFile("文件名");
 	if err != nil {
 		log.Println("查询失败")
 		return
@@ -356,9 +359,11 @@ func cleaningAndRepairPositionMeta(request *constant.CleaningAndRepairPositionMe
 	新数据存储
 */
 func saveCleanData(request *constant.SaveCleanDataRequest) {
+	// 数据输出至数据库
 	//for _, v := range request.DataList {
 	//	sql.AddNewShipPosition(v)
 	//}
+	// 数据输出至文件
 	for _, v := range request.DataList {
 		nowTime := &constant.Data{
 			Year:   v.Year,
@@ -385,8 +390,6 @@ func saveCleanData(request *constant.SaveCleanDataRequest) {
 		}
 		writer.Flush()
 	}
-	//writer.WriteString("\r\n")
-	//writer.Flush()
 }
 
 /*
@@ -403,7 +406,7 @@ func DataClean() {
 	//	log.Println("Progress:", percent, "%")
 	//}
 
-	initWriter("clean_repair-trajectory_new_final")
+	initWriter("clean_repair-trajectory_new_final_2") // 初始化文件输出
 	defer func() {
 		file.Close()
 	}()

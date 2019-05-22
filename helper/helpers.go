@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -339,4 +340,51 @@ func FmtPrintList(positions []constant.PositionMeta) {
 	for _, v := range positions {
 		fmt.Println(v)
 	}
+}
+
+func GetPositionFromFile(fileName string) ([]constant.PositionMeta, error) {
+	file, err := os.Open("data/" + fileName)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer func() {
+		file.Close()
+	}()
+	rawData := make([]constant.PositionMeta, 0)
+	bfRd := bufio.NewReader(file)
+	for {
+		line, _, _ := bfRd.ReadLine()
+		if len(line) == 0 {
+			break
+		}
+		strs := strings.Split(string(line), ",")
+		if len(strs) < 4 {
+			continue
+		}
+		longitude, _ := strconv.ParseFloat(strs[0], 64)
+		latitude, _ := strconv.ParseFloat(strs[1], 64)
+		sog, _ := strconv.ParseFloat(strs[2], 64)
+		cog, _ := strconv.ParseFloat(strs[3], 64)
+		year, _ := strconv.Atoi(strs[4])
+		month, _ := strconv.Atoi(strs[5])
+		day, _ := strconv.Atoi(strs[6])
+		hour, _ := strconv.Atoi(strs[7])
+		minute, _ := strconv.Atoi(strs[8])
+		second, _ := strconv.Atoi(strs[9])
+		rawData = append(rawData, constant.PositionMeta{
+			Longitude: longitude,
+			Latitude:  latitude,
+			SOG:       sog,
+			COG:       cog,
+			Year:      year,
+			Month:     month,
+			Day:       day,
+			Hour:      hour,
+			Minute:    minute,
+			Second:    second,
+			MMSI:      99999999,
+		})
+	}
+	return rawData, nil
 }

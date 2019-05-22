@@ -53,6 +53,25 @@ func GetPositionWithDuration(beginTime *constant.Data, endTime *constant.Data) (
 	return rows, err
 }
 
+func GetNewPositionWithDuration(beginTime *constant.Data, endTime *constant.Data) (*sql.Rows, error) {
+	rows, err := mysql.DB.Query(
+		"select * from newposition where (year > ? or year = ? and (month > ? or month = ? and (day > ? or day = ? and (hour > ? or hour = ? and (minute > ? or minute = ? and second >= ?))))) and (year < ? or year = ? and (month < ? or month = ? and (day < ? or day = ? and (hour < ? or hour = ? and (minute < ? or minute = ? and second <= ?))))) order by id",
+		beginTime.Year, beginTime.Year,
+		beginTime.Month, beginTime.Month,
+		beginTime.Day, beginTime.Day,
+		beginTime.Hour, beginTime.Hour,
+		beginTime.Minute, beginTime.Minute,
+		beginTime.Second,
+		endTime.Year, endTime.Year,
+		endTime.Month, endTime.Month,
+		endTime.Day, endTime.Day,
+		endTime.Hour, endTime.Hour,
+		endTime.Minute, endTime.Minute,
+		endTime.Second,
+	)
+	return rows, err
+}
+
 func GetNewPositionWithShipIDWithDuration(shipID int, beginTime *constant.Data, endTime *constant.Data) ([]constant.PositionMeta, error) {
 	rows, err := mysql.DB.Query(
 		"select * from positiontest where MMSI = ? and (year > ? or year = ? and (month > ? or month = ? and (day > ? or day = ? and (hour > ? or hour = ? and (minute > ? or minute = ? and second >= ?))))) and (year < ? or year = ? and (month < ? or month = ? and (day < ? or day = ? and (hour < ? or hour = ? and (minute < ? or minute = ? and second <= ?)))))",

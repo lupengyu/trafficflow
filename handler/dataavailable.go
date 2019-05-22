@@ -65,4 +65,5 @@ func DataAvailable(fileName string) {
 	}
 	fmt.Println("All Data Pass")
 }
+
 //118.07376715856918,24.482426457322347,10.156921212121214,199.4075012994731

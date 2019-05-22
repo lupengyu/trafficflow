@@ -146,12 +146,16 @@ func TimeDeviation(a *constant.Data, b *constant.Data) int64 {
 func PositionSpacing(a *constant.Position, b *constant.Position) float64 {
 	radius := 6378.137
 	rad := math.Pi / 180.0
-	lat1 := a.Latitude * rad
-	lng1 := a.Longitude * rad
+	lat1 := a.Latitude * rad  //纬度
+	lng1 := a.Longitude * rad //经度
 	lat2 := b.Latitude * rad
 	lng2 := b.Longitude * rad
 	theta := lng2 - lng1
-	dist := math.Acos(math.Sin(lat1)*math.Sin(lat2) + math.Cos(lat1)*math.Cos(lat2)*math.Cos(theta))
+	distTheta := math.Sin(lat1)*math.Sin(lat2) + math.Cos(lat1)*math.Cos(lat2)*math.Cos(theta)
+	if distTheta > 1 {
+		distTheta = 1
+	}
+	dist := math.Acos(distTheta)
 	return dist * radius * 1000
 }
 
@@ -359,7 +363,9 @@ func BoundaryR(angle float64) float64 {
 
 func MeetingDangerUDCPA(a float64, b float64, S float64, T float64, angle float64, DCPA float64) float64 {
 	min := EllipseR(a, b, S, T, angle)
+	//fmt.Println(min)
 	max := constant.NauticalMile
+	//fmt.Println(max)
 	if DCPA < min {
 		return 1.0
 	} else if DCPA > max {
@@ -371,6 +377,9 @@ func MeetingDangerUDCPA(a float64, b float64, S float64, T float64, angle float6
 func MeetingDangerUTCPA(a float64, b float64, S float64, T float64, angle float64, DCPA float64, TCPA float64, Vr float64) float64 {
 	//min := EllipseR(a, b, S, T, angle)
 	//max := constant.NauticalMile
+	if TCPA < 0 {
+		return 0.0
+	}
 	max := BoundaryR(angle)
 	min := 12 * a / 5
 	t1 := (DCPA - min) / Vr
@@ -407,7 +416,7 @@ func MeetingDangerUD(a float64, b float64, S float64, T float64, angle float64, 
 
 func MeetingDangerUV(v float64) float64 {
 	min := constant.StaticShip
-	max := 9.973
+	max := 13.7624
 	if v < min {
 		return 0
 	} else if v > max {
@@ -444,6 +453,11 @@ func MaxAcceleration(length int, maxSpeed float64) float64 {
 	return math.Pow(maxSpeed, 2) / float64(20*length)
 }
 
+func MinAcceleration(length int, maxSpeed float64) float64 {
+	maxSpeed = maxSpeed * 1.852 / 3.6
+	return -1 * math.Pow(maxSpeed, 2) / float64(16*length)
+}
+
 func movingAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
 	if prePosition.Longitude == position.Longitude &&
 		prePosition.Latitude == position.Latitude &&
@@ -451,11 +465,6 @@ func movingAvailable(position constant.PositionMeta, prePosition constant.Positi
 		fmt.Println("moving", prePosition, position) // TODO: remove
 		return false
 	}
-	return true
-}
-
-// 暂时不实现
-func speedAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
 	return true
 }
 
@@ -476,10 +485,15 @@ func driftAvailable(position constant.PositionMeta, prePosition constant.Positio
 		Second: prePosition.Second,
 	})
 	shipInfo := cache.GetShipInfo(position.MMSI)
-	a := MaxAcceleration(shipInfo.Length, 16.0)
-	preV := (prePosition.SOG * 1.852) / 3.6
-	maxV := preV + float64(diff)*a
-	V := (maxV + preV) / 2
+	nowV := prePosition.SOG * 1852.0 / 3600.0
+	endV := position.SOG * 1852.0 / 3600.0
+	maxA := MaxAcceleration(shipInfo.Length, 16.0)
+	minA := MinAcceleration(shipInfo.Length, 16.0)
+	maxL := nowV*float64(diff) + 0.5*maxA*float64(diff)*float64(diff)
+	maxV := nowV + maxA*float64(diff)
+	time := (endV - nowV - minA*float64(diff)) / (maxA - minA)
+	l := (maxV - endV) * (float64(diff) - time) * 0.5
+	L := maxL - l
 	D := PositionSpacing(&constant.Position{
 		Latitude:  prePosition.Latitude,
 		Longitude: prePosition.Longitude,
@@ -487,9 +501,8 @@ func driftAvailable(position constant.PositionMeta, prePosition constant.Positio
 		Latitude:  position.Latitude,
 		Longitude: position.Longitude,
 	})
-	acturalV := D / float64(diff)
-	if acturalV > V {
-		fmt.Println("drift", acturalV, maxV, prePosition, position) // TODO: remove
+	if D > L {
+		fmt.Println("drift", L, D, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -512,9 +525,11 @@ func accelerationAvailable(position constant.PositionMeta, prePosition constant.
 		Second: prePosition.Second,
 	})
 	shipInfo := cache.GetShipInfo(position.MMSI)
-	a := MaxAcceleration(shipInfo.Length, 16.0)
-	if position.SOG > prePosition.SOG+float64(diff)*a {
-		fmt.Println("acceleration", position.SOG, prePosition.SOG+float64(diff)*a, prePosition, position) // TODO: remove
+	acturalA := (position.SOG - prePosition.SOG) * 1852.0 / 3600.0 / float64(diff) //单位 m/s^2
+	aMax := MaxAcceleration(shipInfo.Length, 16.0)                                 //单位 m/s^2
+	aMin := MinAcceleration(shipInfo.Length, 16.0)                                 //单位 m/s^2
+	if acturalA > aMax || acturalA < aMin {
+		fmt.Println("acceleration", acturalA, aMax, aMin, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
@@ -522,7 +537,7 @@ func accelerationAvailable(position constant.PositionMeta, prePosition constant.
 
 func rateAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
 	rate := math.Max(position.COG-prePosition.COG, prePosition.COG-position.COG)
-	absRate := math.Min(rate, 360.0-rate)
+	absRate := math.Min(rate, 360.0-rate) // 当前变化角度
 	diff := TimeDeviation(&constant.Data{
 		Year:   position.Year,
 		Month:  position.Month,
@@ -539,21 +554,25 @@ func rateAvailable(position constant.PositionMeta, prePosition constant.Position
 		Second: prePosition.Second,
 	})
 	shipInfo := cache.GetShipInfo(position.MMSI)
-	a := MaxAcceleration(shipInfo.Length, 16.0)
-	preV := (prePosition.SOG * 1.852) / 3.6
-	maxV := preV + float64(diff)*a
-	V := (maxV + preV) / 2
-	Vnm := V * 3.6 / 1.852
-	maxRate := MaxRate(shipInfo.Length, Vnm)
-	if absRate > float64(diff)*maxRate {
-		fmt.Println("rate", absRate, float64(diff)*maxRate, prePosition, position) // TODO: remove
+	nowV := prePosition.SOG * 1852.0 / 3600.0
+	endV := position.SOG * 1852.0 / 3600.0
+	maxA := MaxAcceleration(shipInfo.Length, 16.0)
+	minA := MinAcceleration(shipInfo.Length, 16.0)
+	maxL := nowV*float64(diff) + 0.5*maxA*float64(diff)*float64(diff)
+	maxV := nowV + maxA*float64(diff)
+	time := (endV - nowV - minA*float64(diff)) / (maxA - minA)
+	l := (maxV - endV) * (float64(diff) - time) * 0.5
+	L := maxL - l
+	maxW := 360.0 * L / (2 * math.Pi * 110.0)
+	if absRate > maxW {
+		fmt.Println("rate", absRate, maxW, prePosition, position) // TODO: remove
 		return false
 	}
 	return true
 }
 
 func PositionAvailable(position constant.PositionMeta, prePosition constant.PositionMeta) bool {
-	return movingAvailable(position, prePosition) && speedAvailable(position, prePosition) &&
+	return movingAvailable(position, prePosition) &&
 		driftAvailable(position, prePosition) && accelerationAvailable(position, prePosition) &&
 		rateAvailable(position, prePosition)
 }
@@ -582,18 +601,18 @@ type AvailableDataType struct {
 func AvailableDataTest(data *AvailableDataType, Time int) *AvailableDataType {
 	a := MaxAcceleration(data.Length, 16.0)
 	preV := (data.SOG * 1.852) / 3.6
-	maxVPrecent := preV + float64(Time)*a*float64(rand.Intn(data.VMax - data.VMin) + data.VMin)*0.1
+	maxVPrecent := preV + float64(Time)*a*float64(rand.Intn(data.VMax-data.VMin)+data.VMin)*0.1
 	vnm := maxVPrecent * 3.6 / 1.852
 	VPrecent := (maxVPrecent + preV) / 2
 	VPrecentnm := VPrecent * 3.6 / 1.852
-	maxRatePrecent := MaxRate(data.Length, VPrecentnm)*data.RateTurn
+	maxRatePrecent := MaxRate(data.Length, VPrecentnm) * data.RateTurn
 	endPosition := CulSecondPointPosition(&constant.Position{Latitude: data.Latitude, Longitude: data.Longitude}, VPrecent*float64(Time), data.COG)
 	return &AvailableDataType{
-		SOG:vnm,
-		COG:data.COG-maxRatePrecent*float64(Time),
-		Longitude:endPosition.Longitude,
-		Latitude:endPosition.Latitude,
-		Length:data.Length,
+		SOG:       vnm,
+		COG:       data.COG - maxRatePrecent*float64(Time),
+		Longitude: endPosition.Longitude,
+		Latitude:  endPosition.Latitude,
+		Length:    data.Length,
 	}
 }
 

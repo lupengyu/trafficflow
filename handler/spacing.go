@@ -14,7 +14,7 @@ func CulSpacing(request *constant.CulSpacingRequest) (response *constant.CulSpac
 	beginTime := helper.DayDecrease(request.Time, request.DeltaT)
 	endTime := helper.DayIncrease(request.Time, request.DeltaT)
 	// 查询时间段内的数据
-	rows, err := sql.GetPositionWithDuration(beginTime, endTime)
+	rows, err := sql.GetNewPositionWithDuration(beginTime, endTime) // TODO: change
 	if err != nil {
 		return nil, err
 	}
